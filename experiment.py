@@ -1,7 +1,8 @@
 import torch
 import numpy as np
 from attrdict import AttrDict
-from torch.utils.data import DataLoader
+from torch_geometric.loader import DataLoader
+from torch.utils.data import random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 from math import inf
@@ -11,28 +12,30 @@ from models.gcn_model import GCN
 default_args = AttrDict(
     {"learning_rate": 0.005,
     "max_epochs": 1000000,
-    "loss_fn": torch.nn.CrossEntropyLoss(),
+    "loss_fn": torch.nn.L1Loss(),
     "display": True,
     "model": GCN,
     "eval_every": 1,
     "stopping_criterion": "validation",
     "stopping_threshold": 0.00001,
-    "patience": 100,
+    "patience": 10,
     "data": None,
-    "train_fraction": 0.6,
-    "validation_fraction": 0.2,
-    "test_fraction": 0.2,
-    "train_samples": None,
-    "val_samples": None,
-    "test_samples": None,
+    "train_fraction": 0.9,
+    "validation_fraction": 0.05,
+    "test_fraction": 0.05,
+    "train_data": None,
+    "validation_data": None,
+    "test_data": None,
     "dropout": 0.0,
     "weight_decay": 1e-5,
     "input_dim": None,
     "hidden_dim": 32,
-    "output_dim": None,
+    "output_dim": 1,
     "hidden_layers": None,
     "num_layers": 1,
-    "pass_to_largest_cc": True
+    "pass_to_largest_cc": True,
+    "batch_size": 64,
+    "layer_type": "GCN"
     }
     )
 
@@ -40,19 +43,20 @@ class Experiment:
     def __init__(self, args):
         self.args = default_args + args
         self.learning_rate = self.args.learning_rate
+        self.batch_size = self.args.batch_size
         self.dropout = self.args.dropout
         self.weight_decay = self.args.weight_decay
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.max_epochs = self.args.max_epochs
-        self.loss_fn = self.args.loss_fn  
+        self.loss_fn = self.args.loss_fn
         self.display = self.args.display
         self.eval_every = self.args.eval_every
         self.data = self.args.data
-        self.num_nodes = len(self.data.y)
+        self.data.data = self.data.data.to(self.device)
         self.num_layers = self.args.num_layers
-        self.train_samples = self.args.train_samples
-        self.val_samples = self.args.val_samples
-        self.test_samples = self.args.test_samples
+        self.train_data = self.args.train_data
+        self.validation_data = self.args.validation_data
+        self.test_data = self.args.test_data
         self.train_fraction = self.args.train_fraction
         self.validation_fraction = self.args.validation_fraction
         self.test_fraction = self.args.test_fraction
@@ -62,29 +66,27 @@ class Experiment:
         self.input_dim = self.args.input_dim
         self.hidden_dim = self.args.hidden_dim
         self.hidden_layers = self.args.hidden_layers
-        self.output_dim = self.args.output_dim
+        self.layer_type = self.args.layer_type
 
         if self.hidden_layers is None:
             self.hidden_layers = [self.hidden_dim] * self.num_layers
-        
-        if self.output_dim is None:
-            self.output_dim = max(self.data.y).item() + 1
 
         if self.input_dim is None:
-            self.input_dim = self.data.x.shape[1]
+            self.input_dim = self.data[0].x.shape[1]
 
-        self.model = GCN(input_dim=self.input_dim, output_dim=self.output_dim, hidden_layers=self.hidden_layers, dropout=self.dropout).to(self.device)
+        self.model = GCN(input_dim=self.input_dim, output_dim=1, hidden_layers=self.hidden_layers, dropout=self.dropout, layer_type=self.layer_type).to(self.device)
 
         # randomly assign a train/validation/test split, or train/validation split if test already assigned
-        if self.test_samples is None:
-            node_indices = list(range(self.num_nodes))
-            self.test_fraction = 1 - self.train_fraction - self.validation_fraction
-            non_test, self.test_samples = train_test_split(node_indices, test_size=self.test_fraction)
-            self.train_samples, self.validation_samples = train_test_split(non_test, test_size=self.validation_fraction/(self.validation_fraction + self.train_fraction))
-        elif self.validation_samples is None:
-            non_test = [i for i in range(self.num_nodes) if not i in self.test_samples]
-            self.train_samples, self.validation_samples = train_test_split(non_test, test_size=self.validation_fraction/(self.validation_fraction + self.train_fraction))
-
+        if self.test_data is None:
+            dataset_size = len(self.data)
+            train_size = int(self.train_fraction * dataset_size)
+            validation_size = int(self.validation_fraction * dataset_size)
+            test_size = dataset_size - train_size - validation_size
+            self.train_data, self.validation_data, self.test_data = random_split(self.data,[train_size, validation_size, test_size])
+        elif self.validation_data is None:
+            train_size = int(self.train_fraction * len(self.train_data))
+            validation_size = len(self.train_data) - train_size
+            self.train_data, self.validation_data = random_split(self.train_data, [train_size, validation_size])
         
     def run(self):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
@@ -92,83 +94,80 @@ class Experiment:
 
         if self.display:
             print("Starting training")
-        best_validation_acc = 0.0
-        best_train_acc = 0.0
+        best_validation_loss = inf
+        best_train_loss = inf
         best_epoch = 0
         epochs_no_improve = 0
-        batch = self.data.to(self.device)
-        train_size = len(self.train_samples)
+        train_size = len(self.train_data)
+        
+        train_loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, pin_memory=True)
+        validation_loader = DataLoader(self.validation_data, batch_size=self.batch_size, shuffle=True, pin_memory=True)
+        test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=True, pin_memory=True)
 		
+        #validation_loss = self.eval(validation_loader)
+        train_loss = self.eval(train_loader)
+        print(train_loss)
+        #input()
+
         for epoch in range(self.max_epochs):
             self.model.train()            
             total_loss = 0
-            num_examples = 0
-            train_correct = 0
+            sample_size = 0
             optimizer.zero_grad()
 
-            batch = self.data.to(self.device)
-            y = self.data.y.to(self.device)
-                
-            out = self.model(batch)
-            loss = self.loss_fn(input=out[self.train_samples], target=y[self.train_samples])
-            num_examples += train_size
-            total_loss += loss.item()
-            _, train_pred = out[self.train_samples].max(dim=1)
-            train_correct += train_pred.eq(y[self.train_samples]).sum().item()
+            for graph in train_loader:
+                #print(i)
+                y = graph.y.float().to(self.device)
 
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
+                out = self.model(graph)
+                loss = self.loss_fn(input=out, target=y)
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
 
-            avg_training_loss = total_loss / num_examples
-            train_acc = train_correct / num_examples
-            scheduler.step(train_acc)
             new_best_str = ''
 
             if epoch % self.eval_every == 0:
-                validation_acc = self.eval(sample="validation")
-                test_acc = self.eval(sample="test")
+                train_loss = self.eval(train_loader)
+                validation_loss = self.eval(validation_loader)
+                test_loss = self.eval(test_loader)
+                scheduler.step(train_loss)
 
                 if self.stopping_criterion == "train":
-                    if train_acc > best_train_acc + self.stopping_threshold:
-                        best_train_acc = train_acc
-                        best_validation_acc = validation_acc
-                        best_test_acc = test_acc
+                    if train_loss < best_train_loss:
+                        best_train_loss = train_loss
+                        best_validation_loss = validation_loss
+                        best_test_loss = test_loss
                         epochs_no_improve = 0
                         new_best_str = ' (new best train)'
                     else:
                         epochs_no_improve += 1
                 elif self.stopping_criterion == 'validation':
-                    if validation_acc > best_validation_acc + self.stopping_threshold:
-                        best_train_acc = train_acc
-                        best_validation_acc = validation_acc
-                        best_test_acc = test_acc
+                    if validation_loss < best_validation_loss:
+                        best_train_loss = train_loss
+                        best_validation_loss = validation_loss
+                        best_test_loss = test_loss
                         epochs_no_improve = 0
                         new_best_str = ' (new best validation)'
                     else:
                         epochs_no_improve += 1
                 if self.display:
-                    print(f'Epoch {epoch}, Train acc: {train_acc}, Validation acc: {validation_acc}{new_best_str}, Test acc: {test_acc}')
-
+                    print(f'Epoch {epoch}, Train loss: {train_loss}, Validation loss: {validation_loss}{new_best_str}, Test loss: {test_loss}')
                 if epochs_no_improve > self.patience:
                     if self.display:
                         print(f'{self.patience} epochs without improvement, stopping training')
-                        print(f'Best train acc: {best_train_acc}, Best validation acc: {best_validation_acc}, Best test acc: {best_test_acc}')
-                    return train_acc, validation_acc, test_acc
+                        print(f'Best train loss: {best_train_loss}, Best validation loss: {best_validation_loss}, Best test loss: {best_test_loss}')
+                    return train_loss, validation_loss, test_loss
 
-    def eval(self, sample="validation"):
+    def eval(self, loader):
         self.model.eval()
+        sample_size = len(loader.dataset)
         with torch.no_grad():
-            if sample == "validation":
-                samples = self.validation_samples
-            elif sample == "test":
-                samples = self.test_samples
-            else:
-                return 0
-            sample_size = len(samples)
-            total_correct = 0
-            batch = self.data.to(self.device)
-            _, pred = self.model(batch)[samples].max(dim=1)
-            total_correct += pred.eq(batch.y[samples]).sum().item()
-            acc = total_correct / sample_size
-            return acc
+            total_loss = 0
+            for graph in loader:
+                y = graph.y.float().to(self.device)
+                out = self.model(graph)
+                loss = self.loss_fn(input=out, target=y) * (len(graph.ptr) - 1)
+                total_loss += loss
+                
+        return total_loss / sample_size
