@@ -20,7 +20,7 @@ class GCN(torch.nn.Module):
         self.layer_type = layer_type
         self.last_layer_fully_adjacent = last_layer_fully_adjacent
         num_features = [input_dim] + hidden_layers + [output_dim]
-        num_layers = len(num_features) - 1
+        self.num_layers = len(num_features) - 1
         layers = []
         for i, (in_features, out_features) in enumerate(zip(num_features[:-1], num_features[1:])):
             layers.append(self.get_layer(in_features, out_features))
@@ -36,7 +36,7 @@ class GCN(torch.nn.Module):
         if self.layer_type == "GCN":
             return GCNConv(in_features, out_features)
         elif self.layer_type == "GIN":
-            return GINConv(nn.Sequential(nn.Linear(in_features, out_features), nn.ReLU(),nn.Linear(out_features, out_features), nn.ReLU()))
+            return GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features), nn.BatchNorm1d(out_features), nn.ReLU()))
 
     def reset_parameters(self):
         for layer in self.layers:
@@ -48,8 +48,9 @@ class GCN(torch.nn.Module):
         batch_size = len(ptr) - 1
         for i, layer in enumerate(self.layers):
             x = layer(x, edge_index)
-            x = self.act_fn(x)
-            x = self.dropout(x)
+            if i != self.num_layers - 1:
+                x = self.act_fn(x)
+                x = self.dropout(x)
         # assign values to each graph in batch
         x = global_mean_pool(x, batch)
         x = x.view(-1)
