@@ -1,0 +1,14 @@
+2022-07-01 21:58:20.473142: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'cudart64_110.dll'; dlerror: cudart64_110.dll not found
+2022-07-01 21:58:20.473312: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+Traceback (most recent call last):
+  File "C:\Users\User\Desktop\neural\tf-gnn-samples\train.py", line 29, in <module>
+    from utils.model_utils import name_to_model_class, name_to_task_class
+  File "C:\Users\User\Desktop\neural\tf-gnn-samples\utils\model_utils.py", line 7, in <module>
+    from models import (Sparse_Graph_Model, GGNN_Model, GNN_FiLM_Model, GNN_Edge_MLP_Model,
+  File "C:\Users\User\Desktop\neural\tf-gnn-samples\models\__init__.py", line 1, in <module>
+    from .sparse_graph_model import Sparse_Graph_Model
+  File "C:\Users\User\Desktop\neural\tf-gnn-samples\models\sparse_graph_model.py", line 16, in <module>
+    class Sparse_Graph_Model(ABC):
+  File "C:\Users\User\Desktop\neural\tf-gnn-samples\models\sparse_graph_model.py", line 306, in Sparse_Graph_Model
+    summary_writer: Optional[tf.summary.FileWriter] = None) \
+AttributeError: module 'tensorboard.summary._tf.summary' has no attribute 'FileWriter'
