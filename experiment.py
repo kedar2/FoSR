@@ -52,7 +52,6 @@ class Experiment:
         self.display = self.args.display
         self.eval_every = self.args.eval_every
         self.data = self.args.data
-        self.data.data = self.data.data.to(self.device)
         self.num_layers = self.args.num_layers
         self.train_data = self.args.train_data
         self.validation_data = self.args.validation_data
@@ -117,6 +116,7 @@ class Experiment:
 
             for graph in train_loader:
                 #print(i)
+                graph = graph.to(self.device)
                 y = graph.y.float().to(self.device)
 
                 out = self.model(graph)
@@ -165,6 +165,7 @@ class Experiment:
         with torch.no_grad():
             total_loss = 0
             for graph in loader:
+                graph = graph.to(self.device)
                 y = graph.y.float().to(self.device)
                 out = self.model(graph)
                 loss = self.loss_fn(input=out, target=y) * (len(graph.ptr) - 1)
