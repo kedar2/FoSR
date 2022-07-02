@@ -99,9 +99,9 @@ class Experiment:
         epochs_no_improve = 0
         train_size = len(self.train_data)
         
-        train_loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True, pin_memory=True)
-        validation_loader = DataLoader(self.validation_data, batch_size=self.batch_size, shuffle=True, pin_memory=True)
-        test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=True, pin_memory=True)
+        train_loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
+        validation_loader = DataLoader(self.validation_data, batch_size=self.batch_size, shuffle=True)
+        test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=True)
 		
         #validation_loss = self.eval(validation_loader)
         train_loss = self.eval(train_loader)
@@ -116,6 +116,7 @@ class Experiment:
 
             for graph in train_loader:
                 #print(i)
+                graph = graph.to(self.device)
                 y = graph.y.float().to(self.device)
 
                 out = self.model(graph)
@@ -164,6 +165,7 @@ class Experiment:
         with torch.no_grad():
             total_loss = 0
             for graph in loader:
+                graph = graph.to(self.device)
                 y = graph.y.float().to(self.device)
                 out = self.model(graph)
                 loss = self.loss_fn(input=out, target=y) * (len(graph.ptr) - 1)
