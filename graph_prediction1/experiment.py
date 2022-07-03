@@ -17,7 +17,7 @@ default_args = AttrDict(
     "model": GCN,
     "eval_every": 1,
     "stopping_criterion": "validation",
-    "stopping_threshold": 0.00001,
+    "stopping_threshold": 1.01,
     "patience": 5,
     "data": None,
     "train_fraction": 0.9,
@@ -33,7 +33,6 @@ default_args = AttrDict(
     "output_dim": 1,
     "hidden_layers": None,
     "num_layers": 1,
-    "pass_to_largest_cc": True,
     "batch_size": 64,
     "layer_type": "GCN"
     }
@@ -132,7 +131,7 @@ class Experiment:
                 scheduler.step(train_loss)
 
                 if self.stopping_criterion == "train":
-                    if train_loss < best_train_loss:
+                    if train_loss < best_train_loss / self.stopping_threshold:
                         best_train_loss = train_loss
                         best_validation_loss = validation_loss
                         best_test_loss = test_loss
@@ -141,7 +140,7 @@ class Experiment:
                     else:
                         epochs_no_improve += 1
                 elif self.stopping_criterion == 'validation':
-                    if validation_loss < best_validation_loss:
+                    if validation_loss < best_validation_loss / self.stopping_threshold:
                         best_train_loss = train_loss
                         best_validation_loss = validation_loss
                         best_test_loss = test_loss
