@@ -4,7 +4,7 @@ __license__ = "MIT"
 import torch
 import torch.nn as nn
 from torch.nn import ModuleList, Dropout, ReLU
-from torch_geometric.nn import GCNConv, GatedGraphConv, GINConv, global_mean_pool
+from torch_geometric.nn import GCNConv, SAGEConv, GatedGraphConv, GINConv, global_mean_pool
 from torch_geometric.data import Data, InMemoryDataset
 
 class GCN(torch.nn.Module):
@@ -37,7 +37,8 @@ class GCN(torch.nn.Module):
             return GCNConv(in_features, out_features)
         elif self.layer_type == "GIN":
             return GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features), nn.BatchNorm1d(out_features), nn.ReLU()))
-
+        elif self.layer_type == "SAGE":
+            return SAGEConv(in_features, out_features)
     def reset_parameters(self):
         for layer in self.layers:
             layer.reset_parameters()
