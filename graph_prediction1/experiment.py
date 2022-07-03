@@ -18,7 +18,7 @@ default_args = AttrDict(
     "eval_every": 1,
     "stopping_criterion": "validation",
     "stopping_threshold": 0.00001,
-    "patience": 10,
+    "patience": 5,
     "data": None,
     "train_fraction": 0.9,
     "validation_fraction": 0.05,
@@ -104,8 +104,6 @@ class Experiment:
         test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=True)
 		
         #validation_loss = self.eval(validation_loader)
-        train_loss = self.eval(train_loader)
-        print(train_loss)
         #input()
 
         for epoch in range(self.max_epochs):
@@ -152,23 +150,23 @@ class Experiment:
                     else:
                         epochs_no_improve += 1
                 if self.display:
-                    print(f'Epoch {epoch}, Train loss: {train_loss}, Validation loss: {validation_loss}{new_best_str}, Test loss: {test_loss}')
+                    print(f'Epoch {epoch}, Train error: {train_loss}, Validation error: {validation_loss}{new_best_str}, Test error: {test_loss}')
                 if epochs_no_improve > self.patience:
                     if self.display:
                         print(f'{self.patience} epochs without improvement, stopping training')
-                        print(f'Best train loss: {best_train_loss}, Best validation loss: {best_validation_loss}, Best test loss: {best_test_loss}')
+                        print(f'Final train error: {best_train_loss}, Final validation error: {best_validation_loss}, Final test error: {best_test_loss}')
                     return train_loss, validation_loss, test_loss
 
     def eval(self, loader):
         self.model.eval()
         sample_size = len(loader.dataset)
         with torch.no_grad():
-            total_loss = 0
+            total_error_rate = 0
             for graph in loader:
                 graph = graph.to(self.device)
                 y = graph.y.float().to(self.device)
                 out = self.model(graph)
-                loss = self.loss_fn(input=out, target=y) * (len(graph.ptr) - 1)
-                total_loss += loss
+                error_rates = torch.abs((y - out) / y)
+                total_error_rate += sum(error_rates)
                 
-        return total_loss / sample_size
+        return total_error_rate / sample_size * 100
