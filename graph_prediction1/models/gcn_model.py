@@ -15,8 +15,10 @@ class GCN(torch.nn.Module):
                  dropout: float = 0.5,
                  last_layer_fully_adjacent=False,
                  layer_type="GCN",
+                 rewired=False
                  ):
         super(GCN, self).__init__()
+        self.rewired = rewired
         self.layer_type = layer_type
         self.last_layer_fully_adjacent = last_layer_fully_adjacent
         num_features = [input_dim] + hidden_layers + [output_dim]
@@ -45,10 +47,16 @@ class GCN(torch.nn.Module):
 
     def forward(self, graph):
         x, edge_index, ptr, batch = graph.x, graph.edge_index, graph.ptr, graph.batch
+        if self.rewired:
+            rewired_edges = [edge_index, graph.rewired1, graph.rewired2, graph.rewired3]
+            # keeps track of what rewiring is done at which layer of the network
         x = x.float()
         batch_size = len(ptr) - 1
         for i, layer in enumerate(self.layers):
-            x = layer(x, edge_index)
+            if self.rewired:
+                x = layer(x, rewired_edges[i])
+            else:
+                x = layer(x, edge_index)
             if i != self.num_layers - 1:
                 x = self.act_fn(x)
                 x = self.dropout(x)
