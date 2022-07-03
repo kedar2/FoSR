@@ -58,7 +58,7 @@ if active:
             args = AttrDict({"data": qm9, "layer_type": "GCN", "display": False})
             args += hyperparams["qm9"]
             train_acc, validation_acc, test_acc = Experiment(args).run()
-            accuracies.append(test_acc)
+            accuracies.append(test_acc.item())
             torch.cuda.empty_cache()
         log_to_file(f"RESULTS FOR {name} (SDRF):\n")
         log_to_file(f"average acc: {torch.mean(accuracies)}\n")

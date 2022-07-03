@@ -31,7 +31,7 @@ if active:
     num_trials=5
     for i in attributes:
         name = attribute_names[i]
-        accuracies = []
+        total_error = 0
         print(f"TESTING: {name} (GCN)")
         for trial in range(num_trials):
             print(f"TRIAL {trial+1}")
@@ -42,9 +42,9 @@ if active:
             args = AttrDict({"data": qm9, "layer_type": "GCN", "display": True})
             args += hyperparams["qm9"]
             train_acc, validation_acc, test_acc = Experiment(args).run()
-            accuracies.append(test_acc)
+            accuracies.append(test_acc.item())
             torch.cuda.empty_cache()
         log_to_file(f"RESULTS FOR {name} (GCN):\n")
-        log_to_file(f"average acc: {torch.mean(accuracies)}\n")
-        log_to_file(f"plus/minus:  {2 * torch.std(accuracies)/(num_trials ** 0.5)}\n\n")
+        log_to_file(f"average acc: {np.mean(accuracies)}\n")
+        log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(num_trials ** 0.5)}\n\n")
     

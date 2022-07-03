@@ -45,7 +45,7 @@ if active:
     for i in range(13):
         name = attribute_names[i]
         accuracies = []
-        print(f"TESTING: {name} (G-RLEF)")
+        print(f"TESTING: {name} (SDRF)")
         for trial in range(num_trials):
             print(f"TRIAL {trial+1}")
             qm9 = QM9(root='data')
@@ -58,9 +58,9 @@ if active:
             args = AttrDict({"data": qm9, "layer_type": "GCN", "display": False})
             args += hyperparams["qm9"]
             train_acc, validation_acc, test_acc = Experiment(args).run()
-            accuracies.append(test_acc)
+            accuracies.append(test_acc.item())
             torch.cuda.empty_cache()
-        log_to_file(f"RESULTS FOR {name} (G-RLEF):\n")
+        log_to_file(f"RESULTS FOR {name} (SDRF):\n")
         log_to_file(f"average acc: {torch.mean(accuracies)}\n")
         log_to_file(f"plus/minus:  {2 * torch.std(accuracies)/(num_trials ** 0.5)}\n\n")
     
