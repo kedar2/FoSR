@@ -25,7 +25,7 @@ if active:
 
     names = ["qm9"]
     hyperparams = {
-    "qm9": AttrDict({"dropout": 0.2, "num_layers": 3, "dim": 128, "learning_rate": 0.001})
+    "qm9": AttrDict({"dropout": 0.2, "num_layers": 3, "dim": 128, "learning_rate": 0.01})
     }
 
     num_trials=5
@@ -45,6 +45,6 @@ if active:
             accuracies.append(test_acc)
             torch.cuda.empty_cache()
         log_to_file(f"RESULTS FOR {name} (GCN):\n")
-        log_to_file(f"average acc: {np.average(accuracies)}\n")
-        log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(num_trials ** 0.5)}\n\n")
+        log_to_file(f"average acc: {torch.mean(accuracies)}\n")
+        log_to_file(f"plus/minus:  {2 * torch.std(accuracies)/(num_trials ** 0.5)}\n\n")
     
