@@ -11,6 +11,7 @@ zinc = ZINC(root='data')
 zinc.data.x = one_hot(zinc.data.x).view(-1, 28)
 
 qm9 = QM9(root='data')
+attributes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 attribute_names = ["mu", "alpha", "HOMO", "LUMO", "gap", "R2", "ZPVE", "U0", "U", "H", "G", "Cv", "Omega"]
 datasets = {'zinc': zinc ,'qm9': qm9}
 
@@ -27,8 +28,8 @@ if active:
     "qm9": AttrDict({"dropout": 0.2, "num_layers": 3, "dim": 128, "learning_rate": 0.001})
     }
 
-    num_trials=5
-    for i in range(13):
+    num_trials=1
+    for i in attributes:
         name = attribute_names[i]
         accuracies = []
         print(f"TESTING: {name} (GCN)")
@@ -38,7 +39,7 @@ if active:
             qm9.data.y = qm9.data.y[:,i]
             # only use the current attribute in training
 
-            args = AttrDict({"data": qm9, "layer_type": "GCN", "display": False})
+            args = AttrDict({"data": qm9, "layer_type": "GCN", "display": True})
             args += hyperparams["qm9"]
             train_acc, validation_acc, test_acc = Experiment(args).run()
             accuracies.append(test_acc)
