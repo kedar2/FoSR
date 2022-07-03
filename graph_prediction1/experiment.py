@@ -150,7 +150,7 @@ class Experiment:
                         epochs_no_improve += 1
                 if self.display:
                     print(f'Epoch {epoch}, Train loss: {train_loss}, Validation loss: {validation_loss}{new_best_str}, Test loss: {test_loss}')
-                if epochs_no_improve > self.patience:
+                if epochs_no_improve >= self.patience:
                     if self.display:
                         print(f'{self.patience} epochs without improvement, stopping training')
                         print(f'Best train loss: {best_train_loss}, Best validation loss: {best_validation_loss}, Best test loss: {best_test_loss}')
