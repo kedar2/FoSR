@@ -34,7 +34,8 @@ default_args = AttrDict(
     "hidden_layers": None,
     "num_layers": 1,
     "batch_size": 64,
-    "layer_type": "GCN"
+    "layer_type": "GCN",
+    "rewired": False
     }
     )
 
@@ -65,6 +66,7 @@ class Experiment:
         self.hidden_dim = self.args.hidden_dim
         self.hidden_layers = self.args.hidden_layers
         self.layer_type = self.args.layer_type
+        self.rewired = self.args.rewired
 
         if self.hidden_layers is None:
             self.hidden_layers = [self.hidden_dim] * self.num_layers
@@ -72,7 +74,7 @@ class Experiment:
         if self.input_dim is None:
             self.input_dim = self.data[0].x.shape[1]
 
-        self.model = GCN(input_dim=self.input_dim, output_dim=1, hidden_layers=self.hidden_layers, dropout=self.dropout, layer_type=self.layer_type).to(self.device)
+        self.model = GCN(input_dim=self.input_dim, output_dim=1, hidden_layers=self.hidden_layers, dropout=self.dropout, layer_type=self.layer_type, rewired=self.rewired).to(self.device)
 
         # randomly assign a train/validation/test split, or train/validation split if test already assigned
         if self.test_data is None:
@@ -150,7 +152,7 @@ class Experiment:
                         epochs_no_improve += 1
                 if self.display:
                     print(f'Epoch {epoch}, Train loss: {train_loss}, Validation loss: {validation_loss}{new_best_str}, Test loss: {test_loss}')
-                if epochs_no_improve >= self.patience:
+                if epochs_no_improve > self.patience:
                     if self.display:
                         print(f'{self.patience} epochs without improvement, stopping training')
                         print(f'Best train loss: {best_train_loss}, Best validation loss: {best_validation_loss}, Best test loss: {best_test_loss}')
