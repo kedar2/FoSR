@@ -27,7 +27,7 @@ if active:
     "qm9": AttrDict({"dropout": 0.2, "num_layers": 3, "dim": 128, "learning_rate": 0.001})
     }
 
-    num_trials=5
+    num_trials=1
     for i in range(13):
         name = attribute_names[i]
         accuracies = []

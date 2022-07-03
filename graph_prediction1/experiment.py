@@ -150,23 +150,23 @@ class Experiment:
                     else:
                         epochs_no_improve += 1
                 if self.display:
-                    print(f'Epoch {epoch}, Train error: {train_loss}, Validation error: {validation_loss}{new_best_str}, Test error: {test_loss}')
+                    print(f'Epoch {epoch}, Train loss: {train_loss}, Validation loss: {validation_loss}{new_best_str}, Test loss: {test_loss}')
                 if epochs_no_improve > self.patience:
                     if self.display:
                         print(f'{self.patience} epochs without improvement, stopping training')
-                        print(f'Final train error: {best_train_loss}, Final validation error: {best_validation_loss}, Final test error: {best_test_loss}')
+                        print(f'Best train loss: {best_train_loss}, Best validation loss: {best_validation_loss}, Best test loss: {best_test_loss}')
                     return train_loss, validation_loss, test_loss
 
     def eval(self, loader):
         self.model.eval()
         sample_size = len(loader.dataset)
         with torch.no_grad():
-            total_error_rate = 0
+            total_loss = 0
             for graph in loader:
                 graph = graph.to(self.device)
                 y = graph.y.float().to(self.device)
                 out = self.model(graph)
-                error_rates = torch.abs((y - out) / y)
-                total_error_rate += sum(error_rates)
+                loss = self.loss_fn(input=out, target=y) * (len(graph.ptr) - 1)
+                total_loss += loss
                 
-        return total_error_rate / sample_size * 100
+        return total_loss / sample_size
