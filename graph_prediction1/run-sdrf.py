@@ -15,7 +15,7 @@ attribute_names = ["mu", "alpha", "HOMO", "LUMO", "gap", "R2", "ZPVE", "U0", "U"
 def produce_rewired_dataset(dataset_source, num_iterations):
     dset = dataset_source(root='data')
     n = len(dset)
-    for i in range(100):
+    for i in range(n):
         G = to_networkx(dset[i], to_undirected=True)
         for j in range(num_iterations):
             rewiring.sdrf(G)
