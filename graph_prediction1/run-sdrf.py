@@ -6,7 +6,6 @@ import rewiring
 from torch_geometric.datasets import ZINC, QM9
 from torch.nn.functional import one_hot
 from torch_geometric.utils import to_networkx, from_networkx
-from batching import RewiredData
 
 active = True
 
