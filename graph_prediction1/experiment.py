@@ -19,7 +19,7 @@ default_args = AttrDict(
     "stopping_criterion": "validation",
     "stopping_threshold": 1.01,
     "patience": 5,
-    "data": None,
+    "dataset": None,
     "train_fraction": 0.9,
     "validation_fraction": 0.05,
     "test_fraction": 0.05,
@@ -35,7 +35,7 @@ default_args = AttrDict(
     "num_layers": 1,
     "batch_size": 64,
     "layer_type": "GCN",
-    "rewired": False
+    "rewired": False,
     }
     )
 
@@ -51,7 +51,7 @@ class Experiment:
         self.loss_fn = self.args.loss_fn
         self.display = self.args.display
         self.eval_every = self.args.eval_every
-        self.data = self.args.data
+        self.dataset = self.args.dataset
         self.num_layers = self.args.num_layers
         self.train_data = self.args.train_data
         self.validation_data = self.args.validation_data
@@ -72,17 +72,17 @@ class Experiment:
             self.hidden_layers = [self.hidden_dim] * self.num_layers
 
         if self.input_dim is None:
-            self.input_dim = self.data[0].x.shape[1]
+            self.input_dim = self.dataset[0].x.shape[1]
 
         self.model = GCN(input_dim=self.input_dim, output_dim=1, hidden_layers=self.hidden_layers, dropout=self.dropout, layer_type=self.layer_type, rewired=self.rewired).to(self.device)
 
         # randomly assign a train/validation/test split, or train/validation split if test already assigned
         if self.test_data is None:
-            dataset_size = len(self.data)
+            dataset_size = len(self.dataset)
             train_size = int(self.train_fraction * dataset_size)
             validation_size = int(self.validation_fraction * dataset_size)
             test_size = dataset_size - train_size - validation_size
-            self.train_data, self.validation_data, self.test_data = random_split(self.data,[train_size, validation_size, test_size])
+            self.train_data, self.validation_data, self.test_data = random_split(self.dataset,[train_size, validation_size, test_size])
         elif self.validation_data is None:
             train_size = int(self.train_fraction * len(self.train_data))
             validation_size = len(self.train_data) - train_size
@@ -99,7 +99,7 @@ class Experiment:
         best_epoch = 0
         epochs_no_improve = 0
         train_size = len(self.train_data)
-        
+
         train_loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
         validation_loader = DataLoader(self.validation_data, batch_size=self.batch_size, shuffle=True)
         test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=True)
@@ -114,7 +114,6 @@ class Experiment:
             optimizer.zero_grad()
 
             for graph in train_loader:
-                #print(i)
                 graph = graph.to(self.device)
                 y = graph.y.float().to(self.device)
 
