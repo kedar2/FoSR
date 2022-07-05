@@ -33,7 +33,7 @@ default_args = AttrDict(
     "output_dim": 1,
     "hidden_layers": None,
     "num_layers": 1,
-    "batch_size": 64,
+    "batch_size": 1024,
     "layer_type": "GCN",
     "sequential_rewiring": False,
     "concurrent_rewiring": True,
@@ -48,7 +48,7 @@ class Experiment:
         self.batch_size = self.args.batch_size
         self.dropout = self.args.dropout
         self.weight_decay = self.args.weight_decay
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda:5' if torch.cuda.is_available() else 'cpu')
         self.max_epochs = self.args.max_epochs
         self.loss_fn = self.args.loss_fn
         self.display = self.args.display
