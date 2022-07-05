@@ -25,7 +25,7 @@ if active:
 
     names = ["qm9"]
     hyperparams = {
-    "qm9": AttrDict({"dropout": 0.2, "num_layers": 4, "dim": 128, "learning_rate": 0.001})
+    "qm9": AttrDict({"dropout": 0.2, "num_layers": 8, "hidden_dim": 64, "learning_rate": 0.001})
     }
 
     num_trials=5
@@ -39,7 +39,7 @@ if active:
             qm9.data.y = qm9.data.y[:,i]
             # only use the current attribute in training
 
-            args = AttrDict({"dataset": qm9, "layer_type": "GCN", "display": False})
+            args = AttrDict({"dataset": qm9, "layer_type": "R-GCN", "display": False})
             args += hyperparams["qm9"]
             train_acc, validation_acc, test_acc = Experiment(args).run()
             accuracies.append(test_acc.item())

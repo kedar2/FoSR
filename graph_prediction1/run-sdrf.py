@@ -20,7 +20,7 @@ def produce_rewired_dataset(dataset_source, num_iterations):
         for j in range(num_iterations):
             rewiring.sdrf(G)
         dset[i].edge_index = from_networkx(G).edge_index
-    return dset
+    return dset.data.edge_index
 
 def produce_labeled_graph(rewirings):
     # takes a set of rewirings of a dataset and merges them into a single graph where each rewiring has its own labeled edges
@@ -33,7 +33,7 @@ def produce_labeled_graph(rewirings):
         edge_index = torch.concat([edge_index, rewiring], dim=1)
     return edge_index.long(), edge_attr.long()
 
-def log_to_file(message, filename="qm9_results.txt"):
+def log_to_file(message, filename="qm9_results2.txt"):
     print(message)
     file = open(filename, "a")
     file.write(message)
@@ -41,10 +41,11 @@ def log_to_file(message, filename="qm9_results.txt"):
 
 print("REWIRING...")
 
-rewired1 = produce_rewired_dataset(QM9, 5).data.edge_index
-rewired2 = produce_rewired_dataset(QM9, 10).data.edge_index
-rewired3 = produce_rewired_dataset(QM9, 25).data.edge_index
-rewirings = [rewired1, rewired2, rewired3]
+rewired0 = QM9(root='data').data.edge_index
+rewired1 = produce_rewired_dataset(QM9, 5)
+rewired2 = produce_rewired_dataset(QM9, 10)
+rewired3 = produce_rewired_dataset(QM9, 25)
+rewirings = [rewired0, rewired1, rewired2, rewired3]
 
 
 print("REWIRED DATASET GENERATED")
@@ -53,7 +54,7 @@ if active:
 
     names = ["qm9"]
     hyperparams = {
-    "qm9": AttrDict({"dropout": 0.2, "num_layers": 4, "dim": 128, "learning_rate": 0.001, "rewired": True})
+    "qm9": AttrDict({"dropout": 0.2, "num_layers": 4, "hidden_dim": 64, "learning_rate": 0.001, "rewired": True})
     }
 
     num_trials=5
@@ -67,7 +68,7 @@ if active:
             qm9.data.edge_index, qm9.data.edge_attr = produce_labeled_graph(rewirings)
             qm9.data.y = qm9.data.y[:,i]
             # only use the current attribute in training
-            args = AttrDict({"dataset": qm9, "layer_type": "GCN", "display": False})
+            args = AttrDict({"dataset": qm9, "layer_type": "Rewired-GCN-Concurrent", "display": False, "num_relations": len(rewirings)})
             args += hyperparams["qm9"]
             train_acc, validation_acc, test_acc = Experiment(args).run()
             accuracies.append(test_acc.item())

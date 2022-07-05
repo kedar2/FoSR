@@ -18,9 +18,9 @@ def produce_rewired_dataset(dataset_source, num_iterations):
     for i in range(n):
         G = to_networkx(dset[i], to_undirected=True)
         for j in range(num_iterations):
-            rewiring.greedy_rlef_2(G)
+            rewiring.sdrf(G)
         dset[i].edge_index = from_networkx(G).edge_index
-    return dset
+    return dset.data.edge_index
 
 def produce_labeled_graph(rewirings):
     # takes a set of rewirings of a dataset and merges them into a single graph where each rewiring has its own labeled edges
@@ -33,7 +33,7 @@ def produce_labeled_graph(rewirings):
         edge_index = torch.concat([edge_index, rewiring], dim=1)
     return edge_index.long(), edge_attr.long()
 
-def log_to_file(message, filename="qm9_results.txt"):
+def log_to_file(message, filename="qm9_results2.txt"):
     print(message)
     file = open(filename, "a")
     file.write(message)
@@ -41,11 +41,11 @@ def log_to_file(message, filename="qm9_results.txt"):
 
 print("REWIRING...")
 
-rewired0 = produce_rewired_dataset(QM9, 0).data.edge_index
-rewired1 = produce_rewired_dataset(QM9, 10).data.edge_index
-rewired2 = produce_rewired_dataset(QM9, 25).data.edge_index
-rewired3 = produce_rewired_dataset(QM9, 50).data.edge_index
-rewirings = [rewired1, rewired2, rewired3]
+rewired0 = QM9(root='data').data.edge_index
+rewired1 = produce_rewired_dataset(QM9, 10)
+rewired2 = produce_rewired_dataset(QM9, 25)
+rewired3 = produce_rewired_dataset(QM9, 50)
+rewirings = [rewired0, rewired1, rewired2, rewired3]
 
 
 print("REWIRED DATASET GENERATED")
@@ -54,26 +54,26 @@ if active:
 
     names = ["qm9"]
     hyperparams = {
-    "qm9": AttrDict({"dropout": 0.2, "num_layers": 4, "dim": 128, "learning_rate": 0.001, "rewired": True})
+    "qm9": AttrDict({"dropout": 0.2, "num_layers": 4, "hidden_dim": 64, "learning_rate": 0.001, "rewired": False})
     }
 
     num_trials=5
     for i in range(13):
         name = attribute_names[i]
         accuracies = []
-        print(f"TESTING: {name} (G-RLEF)")
+        print(f"TESTING: {name} (GRLEF)")
         for trial in range(num_trials):
             print(f"TRIAL {trial+1}")
             qm9 = QM9(root='data')
             qm9.data.edge_index, qm9.data.edge_attr = produce_labeled_graph(rewirings)
             qm9.data.y = qm9.data.y[:,i]
             # only use the current attribute in training
-            args = AttrDict({"dataset": qm9, "layer_type": "GCN", "display": False})
+            args = AttrDict({"dataset": qm9, "layer_type": "Rewired-GCN-Concurrent", "display": True, "num_relations": len(rewirings)})
             args += hyperparams["qm9"]
             train_acc, validation_acc, test_acc = Experiment(args).run()
             accuracies.append(test_acc.item())
             torch.cuda.empty_cache()
-        log_to_file(f"RESULTS FOR {name} (G-RLEF):\n")
+        log_to_file(f"RESULTS FOR {name} (GRLEF):\n")
         log_to_file(f"average acc: {np.mean(accuracies)}\n")
         log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(num_trials ** 0.5)}\n\n")
     
