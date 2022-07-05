@@ -35,7 +35,9 @@ default_args = AttrDict(
     "num_layers": 1,
     "batch_size": 64,
     "layer_type": "GCN",
-    "rewired": False,
+    "sequential_rewiring": False,
+    "concurrent_rewiring": True,
+    "num_relations": 1
     }
     )
 
@@ -66,7 +68,7 @@ class Experiment:
         self.hidden_dim = self.args.hidden_dim
         self.hidden_layers = self.args.hidden_layers
         self.layer_type = self.args.layer_type
-        self.rewired = self.args.rewired
+        self.num_relations = self.args.num_relations
 
         if self.hidden_layers is None:
             self.hidden_layers = [self.hidden_dim] * self.num_layers
@@ -74,7 +76,12 @@ class Experiment:
         if self.input_dim is None:
             self.input_dim = self.dataset[0].x.shape[1]
 
-        self.model = GCN(input_dim=self.input_dim, output_dim=1, hidden_layers=self.hidden_layers, dropout=self.dropout, layer_type=self.layer_type, rewired=self.rewired).to(self.device)
+        self.model = GCN(input_dim=self.input_dim,
+            output_dim=1,
+            hidden_layers=self.hidden_layers,
+            dropout=self.dropout,
+            layer_type=self.layer_type,
+            num_relations=self.num_relations).to(self.device)
 
         # randomly assign a train/validation/test split, or train/validation split if test already assigned
         if self.test_data is None:
