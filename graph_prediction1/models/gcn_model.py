@@ -15,10 +15,11 @@ class SelfLoopGCNConv(torch.nn.Module):
         self.out_features = out_features
         self.layer1 = GCNConv(in_features, out_features)
         self.layer2 = GCNConv(in_features, out_features)
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     def forward(self, x, edge_index):
         num_nodes = x.size(0)
         all_nodes = torch.arange(num_nodes)
-        only_self_loops = torch.stack([all_nodes, all_nodes])
+        only_self_loops = torch.stack([all_nodes, all_nodes]).to(self.device)
         return self.layer1(x, edge_index) + self.layer2(x, only_self_loops)
 
 class GCN(torch.nn.Module):
