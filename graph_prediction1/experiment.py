@@ -33,7 +33,7 @@ default_args = AttrDict(
     "output_dim": 1,
     "hidden_layers": None,
     "num_layers": 1,
-    "batch_size": 1024,
+    "batch_size": 64,
     "layer_type": "GCN",
     "sequential_rewiring": False,
     "concurrent_rewiring": True,
