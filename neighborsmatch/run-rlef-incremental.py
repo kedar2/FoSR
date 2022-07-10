@@ -36,7 +36,7 @@ def log_to_file(message, filename="neighborsmatch.txt"):
 nmatch = task.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
 
 
-for iteration_count in range(10, 160, 10):
+for iteration_count in range(10, 210, 10):
     
     nmatch = produce_rewired_dataset(nmatch, num_iterations=10)
     hyperparams = {
