@@ -18,7 +18,7 @@ default_args = AttrDict(
     "eval_every": 1,
     "stopping_criterion": "train",
     "stopping_threshold": 1.01,
-    "patience": 10,
+    "patience": 20,
     "dataset": None,
     "train_fraction": 0.9,
     "validation_fraction": 0.05,

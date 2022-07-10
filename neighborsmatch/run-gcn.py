@@ -8,7 +8,7 @@ from torch.nn.functional import one_hot
 
 active = True
 
-G = task.path_of_cliques(30, 10)
+G = task.path_of_cliques(3, 10)
 vertices_to_label = list(range(0, 9))
 nmatch = task.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
 
@@ -21,7 +21,7 @@ def log_to_file(message, filename="neighborsmatch_results.txt"):
 if active:
 
     hyperparams = {
-    "neighborsmatch": AttrDict({"dropout": 0.0, "num_layers": 6, "hidden_dim": 256, "learning_rate": 0.001})
+    "neighborsmatch": AttrDict({"dropout": 0.0, "num_layers": 6, "hidden_dim": 64, "learning_rate": 0.001})
     }
 
     num_trials=1

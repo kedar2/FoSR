@@ -24,7 +24,7 @@ def produce_rewired_dataset(dataset_source, num_iterations):
         edge_index = np.array(dset[i].edge_index)
         G = to_networkx(dset[i], to_undirected=True)
         for j in range(num_iterations):
-            rewiring.greedy_rlef_2(G)
+            rewiring.sdrf(G)
         dset[i].edge_index = from_networkx(G).edge_index
     return dset
 
@@ -44,7 +44,7 @@ for iteration_count in iteration_counts:
     num_trials=1
     name = "neighborsmatch"
     accuracies = []
-    print(f"TESTING: {name} (RLEF), ITERATION COUNT: {iteration_count}")
+    print(f"TESTING: {name} (SDRF), ITERATION COUNT: {iteration_count}")
     for trial in range(num_trials):
 
         args = AttrDict({"dataset": nmatch, "layer_type": "GAT", "display": True})
@@ -52,7 +52,7 @@ for iteration_count in iteration_counts:
         train_acc, validation_acc, test_acc = Experiment(args).run()
         accuracies.append(train_acc.item())
         torch.cuda.empty_cache()
-        log_to_file(f"RESULTS FOR {name} (RLEF), ITERATION COUNT: {iteration_count}:\n")
+        log_to_file(f"RESULTS FOR {name} (SDRF), ITERATION COUNT: {iteration_count}:\n")
         log_to_file(f"average acc: {np.mean(accuracies)}\n")
         log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(num_trials ** 0.5)}\n\n")
     
