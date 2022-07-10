@@ -98,6 +98,7 @@ class Experiment:
             self.train_data, self.validation_data = random_split(self.train_data, [train_size, validation_size])
         
     def run(self):
+        torch.manual_seed(123)
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, mode='max', threshold_mode='abs', factor=0.5, patience=10)
 
