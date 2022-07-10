@@ -20,7 +20,6 @@ def produce_rewired_dataset(dataset_source, num_iterations):
     dset = dataset_source
     n = len(dset)
     for i in range(n):
-        print(i)
         edge_index = np.array(dset[i].edge_index)
         G = to_networkx(dset[i], to_undirected=True)
         for j in range(num_iterations):
