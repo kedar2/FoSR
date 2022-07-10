@@ -27,7 +27,7 @@ def produce_rewired_dataset(dataset_source, num_iterations):
         dset[i].edge_index = from_networkx(G).edge_index
     return dset
 
-def log_to_file(message, filename="neighborsmatch_results.txt"):
+def log_to_file(message, filename="neighborsmatch.txt"):
     print(message)
     file = open(filename, "a")
     file.write(message)
@@ -37,7 +37,7 @@ for iteration_count in iteration_counts:
     nmatch = task.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
     nmatch = produce_rewired_dataset(nmatch, num_iterations=iteration_count)
     hyperparams = {
-    "neighborsmatch": AttrDict({"dropout": 0.0, "num_layers": 6, "hidden_dim": 256, "learning_rate": 0.001})
+    "neighborsmatch": AttrDict({"dropout": 0.0, "num_layers": 6, "hidden_dim": 64, "learning_rate": 0.001})
     }
 
     num_trials=1

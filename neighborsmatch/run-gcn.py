@@ -12,7 +12,7 @@ G = task.path_of_cliques(3, 10)
 vertices_to_label = list(range(0, 9))
 nmatch = task.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
 
-def log_to_file(message, filename="neighborsmatch_results.txt"):
+def log_to_file(message, filename="neighborsmatch.txt"):
     print(message)
     file = open(filename, "a")
     file.write(message)
