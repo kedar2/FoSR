@@ -6,6 +6,7 @@ from torch.utils.data import random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
 from math import inf
+import random
 
 from models.gcn_model import GCN
 
@@ -81,6 +82,8 @@ class Experiment:
         
     def run(self):
         torch.manual_seed(123)
+        random.seed(123)
+        np.random.seed(123)
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, mode='max', threshold_mode='abs', factor=0.5, patience=10)
 

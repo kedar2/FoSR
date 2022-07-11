@@ -1,10 +1,15 @@
 from attrdict import AttrDict
 from experiment import Experiment
 import torch
+import random
 import numpy as np
 import task
 import rewiring
 from torch.nn.functional import one_hot
+
+torch.manual_seed(123)
+random.seed(123)
+np.random.seed(123)
 
 active = True
 

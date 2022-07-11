@@ -1,6 +1,7 @@
 from attrdict import AttrDict
 from experiment import Experiment
 import torch
+import random
 import numpy as np
 import task
 import rewiring
@@ -8,7 +9,9 @@ import rewiring_rlef
 from torch.nn.functional import one_hot
 from torch_geometric.utils import to_networkx, from_networkx
 
-
+torch.manual_seed(123)
+random.seed(123)
+np.random.seed(123)
 
 G = task.path_of_cliques(3, 10)
 vertices_to_label = list(range(0, 9))
