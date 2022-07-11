@@ -40,7 +40,9 @@ nmatch = task.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
 
 
 for iteration_count in range(10, 160, 10):
-    
+    torch.manual_seed(123)
+    random.seed(123)
+    np.random.seed(123)
     nmatch = produce_rewired_dataset(nmatch, num_iterations=10)
     hyperparams = {
     "neighborsmatch": AttrDict({"dropout": 0.0, "num_layers": 6, "hidden_dim": 64, "learning_rate": 0.001})

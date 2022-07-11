@@ -81,9 +81,6 @@ class Experiment:
             num_relations=self.num_relations).to(self.device)
         
     def run(self):
-        torch.manual_seed(123)
-        random.seed(123)
-        np.random.seed(123)
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         scheduler = ReduceLROnPlateau(optimizer, mode='max', threshold_mode='abs', factor=0.5, patience=10)
 
@@ -132,7 +129,7 @@ class Experiment:
                     if self.display:
                         print(f'{self.patience} epochs without improvement, stopping training')
                         print(f'Best train loss: {best_train_loss}')
-                    return train_loss
+                    return best_train_loss
 
     def eval(self, loader, view=False):
         self.model.eval()

@@ -25,6 +25,9 @@ def log_to_file(message, filename="neighborsmatch2.txt"):
 
 if active:
 
+    torch.manual_seed(123)
+    random.seed(123)
+    np.random.seed(123)
     hyperparams = {
     "neighborsmatch": AttrDict({"dropout": 0.0, "num_layers": 6, "hidden_dim": 64, "learning_rate": 0.001})
     }
@@ -37,7 +40,7 @@ if active:
 
         args = AttrDict({"dataset": nmatch, "layer_type": "GAT", "display": True})
         args += hyperparams["neighborsmatch"]
-        train_acc, validation_acc, test_acc = Experiment(args).run()
+        train_acc = Experiment(args).run()
         accuracies.append(train_acc.item())
         torch.cuda.empty_cache()
         log_to_file(f"RESULTS FOR {name} (GCN):\n")
