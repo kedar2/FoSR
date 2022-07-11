@@ -27,7 +27,7 @@ def produce_rewired_dataset(dataset_source, num_iterations):
         dset[i].edge_index = from_networkx(G).edge_index
     return dset
 
-def log_to_file(message, filename="neighborsmatch.txt"):
+def log_to_file(message, filename="neighborsmatch2.txt"):
     print(message)
     file = open(filename, "a")
     file.write(message)
@@ -36,7 +36,7 @@ def log_to_file(message, filename="neighborsmatch.txt"):
 nmatch = task.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
 
 
-for iteration_count in range(10, 210, 10):
+for iteration_count in range(10, 160, 10):
     
     nmatch = produce_rewired_dataset(nmatch, num_iterations=10)
     hyperparams = {
@@ -51,7 +51,7 @@ for iteration_count in range(10, 210, 10):
 
         args = AttrDict({"dataset": nmatch, "layer_type": "GAT", "display": True})
         args += hyperparams["neighborsmatch"]
-        train_acc, validation_acc, test_acc = Experiment(args).run()
+        train_acc = Experiment(args).run()
         accuracies.append(train_acc.item())
         torch.cuda.empty_cache()
         log_to_file(f"RESULTS FOR {name} (RLEF), ITERATION COUNT: {iteration_count}:\n")
