@@ -55,12 +55,6 @@ class Experiment:
         self.eval_every = self.args.eval_every
         self.dataset = self.args.dataset
         self.num_layers = self.args.num_layers
-        self.train_data = self.args.train_data
-        self.validation_data = self.args.validation_data
-        self.test_data = self.args.test_data
-        self.train_fraction = self.args.train_fraction
-        self.validation_fraction = self.args.validation_fraction
-        self.test_fraction = self.args.test_fraction
         self.stopping_criterion = self.args.stopping_criterion
         self.stopping_threshold = self.args.stopping_threshold
         self.patience = self.args.patience
@@ -84,18 +78,6 @@ class Experiment:
             dropout=self.dropout,
             layer_type=self.layer_type,
             num_relations=self.num_relations).to(self.device)
-
-        # randomly assign a train/validation/test split, or train/validation split if test already assigned
-        if self.test_data is None:
-            dataset_size = len(self.dataset)
-            train_size = int(self.train_fraction * dataset_size)
-            validation_size = int(self.validation_fraction * dataset_size)
-            test_size = dataset_size - train_size - validation_size
-            self.train_data, self.validation_data, self.test_data = random_split(self.dataset,[train_size, validation_size, test_size])
-        elif self.validation_data is None:
-            train_size = int(self.train_fraction * len(self.train_data))
-            validation_size = len(self.train_data) - train_size
-            self.train_data, self.validation_data = random_split(self.train_data, [train_size, validation_size])
         
     def run(self):
         torch.manual_seed(123)
@@ -104,19 +86,12 @@ class Experiment:
 
         if self.display:
             print("Starting training")
-        best_validation_loss = 0
         best_train_loss = 0
-        best_test_loss = 0
         best_epoch = 0
         epochs_no_improve = 0
-        train_size = len(self.train_data)
+        train_size = len(self.dataset)
 
-        train_loader = DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
-        validation_loader = DataLoader(self.validation_data, batch_size=self.batch_size, shuffle=True)
-        test_loader = DataLoader(self.test_data, batch_size=self.batch_size, shuffle=True)
-        
-        #validation_loss = self.eval(validation_loader)
-        #input()
+        train_loader = DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
 
         for epoch in range(self.max_epochs):
             self.model.train()            
@@ -139,35 +114,22 @@ class Experiment:
 
             if epoch % self.eval_every == 0:
                 train_loss = self.eval(train_loader, view=True)
-                validation_loss = self.eval(validation_loader)
-                test_loss = self.eval(test_loader)
                 scheduler.step(train_loss)
 
                 if self.stopping_criterion == "train":
                     if train_loss > best_train_loss * self.stopping_threshold:
                         best_train_loss = train_loss
-                        best_validation_loss = validation_loss
-                        best_test_loss = test_loss
                         epochs_no_improve = 0
                         new_best_str = ' (new best train)'
                     else:
                         epochs_no_improve += 1
-                elif self.stopping_criterion == 'validation':
-                    if validation_loss > best_validation_loss * self.stopping_threshold:
-                        best_train_loss = train_loss
-                        best_validation_loss = validation_loss
-                        best_test_loss = test_loss
-                        epochs_no_improve = 0
-                        new_best_str = ' (new best validation)'
-                    else:
-                        epochs_no_improve += 1
                 if self.display:
-                    print(f'Epoch {epoch}, Train loss: {train_loss}, Validation loss: {validation_loss}{new_best_str}, Test loss: {test_loss}')
+                    print(f'Epoch {epoch}, Train loss: {train_loss} {new_best_str}')
                 if epochs_no_improve > self.patience:
                     if self.display:
                         print(f'{self.patience} epochs without improvement, stopping training')
-                        print(f'Best train loss: {best_train_loss}, Best validation loss: {best_validation_loss}, Best test loss: {best_test_loss}')
-                    return train_loss, validation_loss, test_loss
+                        print(f'Best train loss: {best_train_loss}')
+                    return train_loss
 
     def eval(self, loader, view=False):
         self.model.eval()
