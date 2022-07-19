@@ -15,6 +15,7 @@ default_args = AttrDict(
     "loss_fn": torch.nn.L1Loss(),
     "display": True,
     "model": GCN,
+    "device": None,
     "eval_every": 1,
     "stopping_criterion": "validation",
     "stopping_threshold": 1.01,
@@ -44,60 +45,37 @@ default_args = AttrDict(
 class Experiment:
     def __init__(self, args):
         self.args = default_args + args
-        self.learning_rate = self.args.learning_rate
-        self.batch_size = self.args.batch_size
-        self.dropout = self.args.dropout
-        self.weight_decay = self.args.weight_decay
-        self.device = torch.device('cuda:5' if torch.cuda.is_available() else 'cpu')
-        self.max_epochs = self.args.max_epochs
-        self.loss_fn = self.args.loss_fn
-        self.display = self.args.display
-        self.eval_every = self.args.eval_every
-        self.dataset = self.args.dataset
-        self.num_layers = self.args.num_layers
-        self.train_data = self.args.train_data
-        self.validation_data = self.args.validation_data
-        self.test_data = self.args.test_data
-        self.train_fraction = self.args.train_fraction
-        self.validation_fraction = self.args.validation_fraction
-        self.test_fraction = self.args.test_fraction
-        self.stopping_criterion = self.args.stopping_criterion
-        self.stopping_threshold = self.args.stopping_threshold
-        self.patience = self.args.patience
-        self.input_dim = self.args.input_dim
-        self.hidden_dim = self.args.hidden_dim
-        self.hidden_layers = self.args.hidden_layers
-        self.layer_type = self.args.layer_type
-        self.num_relations = self.args.num_relations
+        if self.args.device is None:
+            self.args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        if self.hidden_layers is None:
-            self.hidden_layers = [self.hidden_dim] * self.num_layers
+        if self.args.hidden_layers is None:
+            self.args.hidden_layers = [self.args.hidden_dim] * self.args.num_layers
 
-        if self.input_dim is None:
-            self.input_dim = self.dataset[0].x.shape[1]
+        if self.args.input_dim is None:
+            self.args.input_dim = self.args.dataset[0].x.shape[1]
 
-        self.model = GCN(input_dim=self.input_dim,
+        self.model = GCN(input_dim=self.args.input_dim,
             output_dim=1,
-            hidden_layers=self.hidden_layers,
-            dropout=self.dropout,
-            layer_type=self.layer_type,
-            num_relations=self.num_relations).to(self.device)
+            hidden_layers=self.args.hidden_layers,
+            dropout=self.args.dropout,
+            layer_type=self.args.layer_type,
+            num_relations=self.args.num_relations).to(self.args.device)
 
         # randomly assign a train/validation/test split, or train/validation split if test already assigned
-        if self.test_data is None:
-            dataset_size = len(self.dataset)
-            train_size = int(self.train_fraction * dataset_size)
-            validation_size = int(self.validation_fraction * dataset_size)
+        if self.args.test_data is None:
+            dataset_size = len(self.args.dataset)
+            train_size = int(self.args.train_fraction * dataset_size)
+            validation_size = int(self.args.validation_fraction * dataset_size)
             test_size = dataset_size - train_size - validation_size
-            self.train_data, self.validation_data, self.test_data = random_split(self.dataset,[train_size, validation_size, test_size])
-        elif self.validation_data is None:
-            train_size = int(self.train_fraction * len(self.train_data))
-            validation_size = len(self.train_data) - train_size
-            self.train_data, self.validation_data = random_split(self.train_data, [train_size, validation_size])
+            self.args.train_data, self.args.validation_data, self.args.test_data = random_split(self.args.dataset,[train_size, validation_size, test_size])
+        elif self.args.validation_data is None:
+            train_size = int(self.args.train_fraction * len(self.args.train_data))
+            validation_size = len(self.args.train_data) - train_size
+            self.args.train_data, self.args.validation_data = random_split(self.args.train_data, [train_size, validation_size])
         
     def run(self):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        scheduler = ReduceLROnPlateau(optimizer, mode='max', threshold_mode='abs', factor=0.5, patience=10)
+        scheduler = ReduceLROnPlateau(optimizer)
 
         if self.display:
             print("Starting training")

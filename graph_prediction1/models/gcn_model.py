@@ -15,7 +15,7 @@ class SelfLoopGCNConv(torch.nn.Module):
         self.out_features = out_features
         self.layer1 = GCNConv(in_features, out_features)
         self.layer2 = GCNConv(in_features, out_features)
-        self.device = torch.device('cuda:5' if torch.cuda.is_available() else 'cpu')
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     def forward(self, x, edge_index):
         num_nodes = x.size(0)
         all_nodes = torch.arange(num_nodes)
