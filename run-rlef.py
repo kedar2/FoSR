@@ -27,7 +27,7 @@ def produce_rewired_dataset(dataset_source, num_iterations):
         dset[i].edge_index = from_networkx(G).edge_index
     return dset
 
-def log_to_file(message, filename="neighborsmatch.txt"):
+def log_to_file(message, filename="neighborsmatch2.txt"):
     print(message)
     file = open(filename, "a")
     file.write(message)
@@ -40,7 +40,7 @@ for iteration_count in iteration_counts:
     "neighborsmatch": AttrDict({"dropout": 0.0, "num_layers": 6, "hidden_dim": 64, "learning_rate": 0.001})
     }
 
-    num_trials=1
+    num_trials=10
     name = "neighborsmatch"
     accuracies = []
     print(f"TESTING: {name} (RLEF), ITERATION COUNT: {iteration_count}")
