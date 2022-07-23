@@ -43,7 +43,7 @@ if active:
         train_acc = Experiment(args).run()
         accuracies.append(train_acc.item())
         torch.cuda.empty_cache()
-        log_to_file(f"RESULTS FOR {name} (GCN):\n")
-        log_to_file(f"average acc: {np.mean(accuracies)}\n")
-        log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(num_trials ** 0.5)}\n\n")
+    log_to_file(f"RESULTS FOR {name} (GCN):\n")
+    log_to_file(f"average acc: {np.mean(accuracies)}\n")
+    log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(num_trials ** 0.5)}\n\n")
     

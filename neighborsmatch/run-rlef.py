@@ -60,7 +60,7 @@ for iteration_count in range(10, 160, 10):
         train_acc = Experiment(args).run()
         accuracies.append(train_acc.item())
         torch.cuda.empty_cache()
-        log_to_file(f"RESULTS FOR {name} (SDRF), ITERATION COUNT: {iteration_count}:\n")
-        log_to_file(f"average acc: {np.mean(accuracies)}\n")
-        log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(num_trials ** 0.5)}\n\n")
+    log_to_file(f"RESULTS FOR {name} (SDRF), ITERATION COUNT: {iteration_count}:\n")
+    log_to_file(f"average acc: {np.mean(accuracies)}\n")
+    log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(num_trials ** 0.5)}\n\n")
     
