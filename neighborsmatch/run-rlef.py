@@ -14,7 +14,7 @@ torch.manual_seed(123)
 random.seed(123)
 np.random.seed(123)
 
-G = task.path_of_cliques(3, 10)
+
 vertices_to_label = list(range(0, 9))
 
 
@@ -37,24 +37,26 @@ def log_to_file(message, filename="neighborsmatch2.txt"):
     file.write(message)
     file.close()
 
-nmatch = task.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
 
 
-for iteration_count in range(10, 160, 10):
-    torch.manual_seed(123)
-    random.seed(123)
-    np.random.seed(123)
-    nmatch = produce_rewired_dataset(nmatch, num_iterations=10)
+
+for iteration_count in range(50, 1050, 50):
     hyperparams = {
     "neighborsmatch": AttrDict({"dropout": 0.0, "num_layers": 6, "hidden_dim": 64, "learning_rate": 0.001})
     }
 
-    num_trials=10
+    num_trials=20
     name = "neighborsmatch"
     accuracies = []
     print(f"TESTING: {name} (GRLEF), ITERATION COUNT: {iteration_count}")
     for trial in range(num_trials):
-
+        torch.manual_seed(123)
+        random.seed(123)
+        np.random.seed(123)
+        G = task.path_of_cliques(3, 10)
+        for i in range(iteration_count):
+            rewiring.greedy_rlef_2(G)
+        nmatch = task.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
         args = AttrDict({"dataset": nmatch, "layer_type": "GAT", "display": True})
         args += hyperparams["neighborsmatch"]
         train_acc = Experiment(args).run()
