@@ -26,6 +26,7 @@ def produce_rewired_dataset(dataset_source, num_iterations):
 
 default_args = AttrDict({
     "dropout": 0.0,
+    "patience": 20,
     "num_layers": 6,
     "hidden_dim": 64,
     "learning_rate": 1e-3,
@@ -57,15 +58,11 @@ def run(args=AttrDict({})):
         dataset = nmatch.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
         print(f"TRIAL {trial}")
         train_acc = Experiment(args=args, dataset=dataset).run()
-        result_dict = {"train_acc": train_acc, "validation_acc": validation_acc, "test_acc": test_acc, "dataset": key}
-        results.append(args + result_dict)
         accuracies.append(test_acc)
 
     log_to_file(f"RESULTS FOR NEIGHBORSMATCH ({args.rewiring}), ITERATION COUNT {args.num_iterations}:\n")
     log_to_file(f"average acc: {100 * np.mean(accuracies)}\n")
     log_to_file(f"plus/minus:  {200 * np.std(accuracies)/(args.num_trials ** 0.5)}\n\n")
-    results_df = pd.DataFrame(results)
-    results_df.to_csv('results/neighborsmatch_results.csv', mode='a')
 
 if __name__ == '__main__':
     run()
