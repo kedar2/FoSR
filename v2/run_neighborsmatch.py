@@ -58,7 +58,7 @@ def run(args=AttrDict({})):
         dataset = nmatch.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
         print(f"TRIAL {trial}")
         train_acc = Experiment(args=args, dataset=dataset).run()
-        accuracies.append(train_acc)
+        accuracies.append(train_acc.item())
 
     log_to_file(f"RESULTS FOR NEIGHBORSMATCH ({args.rewiring}), ITERATION COUNT {args.num_iterations}:\n")
     log_to_file(f"average acc: {100 * np.mean(accuracies)}\n")
