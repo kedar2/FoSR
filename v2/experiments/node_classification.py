@@ -70,6 +70,8 @@ class Experiment:
         best_test_acc = 0.0
         best_validation_acc = 0.0
         best_train_acc = 0.0
+        train_goal = 0.0
+        validation_goal = 0.0
         best_epoch = 0
         epochs_no_improve = 0
         train_size = len(self.train_mask)
@@ -101,29 +103,33 @@ class Experiment:
                 test_acc = self.eval(batch=batch, mask=self.test_mask)
 
                 if self.args.stopping_criterion == "train":
-                    if train_acc > best_train_acc * self.args.stopping_threshold:
+                    if train_acc > train_goal:
                         best_train_acc = train_acc
                         best_validation_acc = validation_acc
                         best_test_acc = test_acc
                         epochs_no_improve = 0
+                        train_goal = train_acc * self.args.stopping_threshold
                         new_best_str = ' (new best train)'
                     elif train_acc > best_train_acc:
                         best_train_acc = train_acc
                         best_validation_acc = validation_acc
                         best_test_acc = test_acc
+                        epochs_no_improve += 1
                     else:
                         epochs_no_improve += 1
                 elif self.args.stopping_criterion == 'validation':
-                    if validation_acc > best_validation_acc * self.args.stopping_threshold:
+                    if validation_acc > validation_goal:
                         best_train_acc = train_acc
                         best_validation_acc = validation_acc
                         best_test_acc = test_acc
                         epochs_no_improve = 0
+                        validation_goal = validation_acc * self.args.stopping_threshold
                         new_best_str = ' (new best validation)'
                     elif validation_acc > best_validation_acc:
                         best_train_acc = test_acc
                         best_validation_acc = validation_acc
                         best_test_acc = test_acc
+                        epochs_no_improve += 1
                     else:
                         epochs_no_improve += 1
                 if self.args.display:
