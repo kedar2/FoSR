@@ -1,12 +1,16 @@
 from attrdict import AttrDict
 from torch_geometric.datasets import WebKB, WikipediaNetwork, Actor, Planetoid
 from torch_geometric.utils import to_networkx, from_networkx
+from torch_geometric.transforms import LargestConnectedComponents, ToUndirected
 from experiments.node_classification import Experiment
 import torch
 import numpy as np
 import pandas as pd
 from hyperparams import get_args_from_input
 from preprocessing import rewiring, sdrf, robustness
+
+largest_cc = LargestConnectedComponents()
+to_undirected = ToUndirected()
 
 cornell = WebKB(root="data", name="Cornell")
 wisconsin = WebKB(root="data", name="Wisconsin")
@@ -31,13 +35,14 @@ default_args = AttrDict({
     "num_layers": 3,
     "hidden_dim": 128,
     "learning_rate": 1e-3,
-    "layer_type": "R-GCN2",
+    "layer_type": "R-GCN",
     "display": False,
     "num_trials": 30,
     "eval_every": 1,
     "rewiring": "edge_rewire",
-    "num_iterations": 50,
-    "num_relations": 2
+    "num_iterations": 0,
+    "num_relations": 2,
+    "patience": 100
     })
 
 def run(args=AttrDict({})):
@@ -48,19 +53,20 @@ def run(args=AttrDict({})):
         accuracies = []
         print(f"TESTING: {key} ({default_args.rewiring})")
         dataset = datasets[key]
-        dataset.data.edge_index, dataset.data.num_nodes = rewiring.to_undirected(dataset.data)
-        print(rewiring.spectral_gap(to_networkx(dataset.data, to_undirected=True)))
+        dataset.data = to_undirected(dataset.data)
+        dataset.data = largest_cc(dataset.data)
         if args.rewiring == "edge_rewire":
             edge_index, edge_type, _ = robustness.edge_rewire(dataset.data.edge_index.numpy(), num_iterations=args.num_iterations)
             dataset.data.edge_index = torch.tensor(edge_index)
             dataset.data.edge_type = torch.tensor(edge_type)
-        print(rewiring.spectral_gap(to_networkx(dataset.data, to_undirected=True)))
+        #print(rewiring.spectral_gap(to_networkx(dataset.data, to_undirected=True)))
         for trial in range(args.num_trials):
             #print(f"TRIAL {trial+1}")
             train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
             result_dict = {"train_acc": train_acc, "validation_acc": validation_acc, "test_acc": test_acc, "dataset": key}
             results.append(args + result_dict)
-            accuracies.append(test_acc.item())
+            accuracies.append(test_acc)
+            print(test_acc)
 
         log_to_file(f"RESULTS FOR {key} ({default_args.rewiring}):\n")
         log_to_file(f"average acc: {np.mean(accuracies)}\n")
