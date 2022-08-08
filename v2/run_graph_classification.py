@@ -81,7 +81,7 @@ def run(args=AttrDict({})):
             accuracies.append(test_acc)
             print(test_acc)
 
-        log_to_file(f"RESULTS FOR {key} ({default_args.rewiring}):\n")
+        log_to_file(f"RESULTS FOR {key} ({default_args.rewiring}), {args.num_iterations} ITERATIONS:\n")
         log_to_file(f"average acc: {np.mean(accuracies)}\n")
         log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(args.num_trials ** 0.5)}\n\n")
 if __name__ == '__main__':
