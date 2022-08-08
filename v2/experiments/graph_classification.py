@@ -1,13 +1,12 @@
 import torch
 import numpy as np
 from attrdict import AttrDict
-from sklearn.model_selection import train_test_split
 from torch_geometric.loader import DataLoader
 from torch.utils.data import random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from math import inf
 
-from models.node_model import GCN
+from models.graph_model import GCN
 
 default_args = AttrDict(
     {"learning_rate": 1e-3,
@@ -17,13 +16,15 @@ default_args = AttrDict(
     "eval_every": 1,
     "stopping_criterion": "validation",
     "stopping_threshold": 1.01,
-    "patience": 50,
-    "train_fraction": 0.6,
-    "validation_fraction": 0.2,
-    "test_fraction": 0.2,
+    "patience": 5,
+    "train_fraction": 0.8,
+    "validation_fraction": 0.1,
+    "test_fraction": 0.1,
     "dropout": 0.0,
     "weight_decay": 1e-5,
+    "input_dim": None,
     "hidden_dim": 32,
+    "output_dim": 1,
     "hidden_layers": None,
     "num_layers": 1,
     "batch_size": 64,
@@ -33,50 +34,52 @@ default_args = AttrDict(
     )
 
 class Experiment:
-    def __init__(self, args=None, dataset=None, train_mask=None, validation_mask=None, test_mask=None):
+    def __init__(self, args=None, dataset=None, train_dataset=None, validation_dataset=None, test_dataset=None):
         self.args = default_args + args
         self.dataset = dataset
-        self.train_mask = train_mask
-        self.validation_mask = validation_mask
-        self.test_mask = test_mask
+        self.train_dataset = train_dataset
+        self.validation_dataset = validation_dataset
+        self.test_dataset = test_dataset
         self.loss_fn = torch.nn.CrossEntropyLoss()
-        self.args.input_dim = self.dataset[0].x.shape[1]
-        self.args.output_dim = torch.amax(self.dataset[0].y).item() + 1
-        self.num_nodes = self.dataset[0].x.size(axis=0)
 
         if self.args.device is None:
             self.args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if self.args.hidden_layers is None:
             self.args.hidden_layers = [self.args.hidden_dim] * self.args.num_layers
+        if self.args.input_dim is None:
+            self.args.input_dim = self.dataset[0].x.shape[1]
 
         self.model = GCN(self.args).to(self.args.device)
 
         # randomly assign a train/validation/test split, or train/validation split if test already assigned
-        if self.test_mask is None:
-            node_indices = list(range(self.num_nodes))
-            self.args.test_fraction = 1 - self.args.train_fraction - self.args.validation_fraction
-            non_test, self.test_mask = train_test_split(node_indices, test_size=self.args.test_fraction)
-            self.train_mask, self.validation_mask = train_test_split(non_test, test_size=self.args.validation_fraction/(self.args.validation_fraction + self.args.train_fraction))
-        elif self.validation_mask is None:
-            non_test = [i for i in range(self.num_nodes) if not i in self.test_mask]
-            self.train_mask, self.validation_mask = train_test_split(non_test, test_size=self.args.validation_fraction/(self.args.validation_fraction + self.args.train_fraction))
+        if self.test_dataset is None:
+            dataset_size = len(self.dataset)
+            train_size = int(self.args.train_fraction * dataset_size)
+            validation_size = int(self.args.validation_fraction * dataset_size)
+            test_size = dataset_size - train_size - validation_size
+            self.train_dataset, self.validation_dataset, self.test_dataset = random_split(self.dataset,[train_size, validation_size, test_size])
+        elif self.validation_dataset is None:
+            train_size = int(self.args.train_fraction * len(self.train_dataset))
+            validation_size = len(self.args.train_data) - train_size
+            self.args.train_data, self.args.validation_data = random_split(self.args.train_data, [train_size, validation_size])
         
     def run(self):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
-        scheduler = ReduceLROnPlateau(optimizer,  patience=25)
+        scheduler = ReduceLROnPlateau(optimizer)
 
         if self.args.display:
             print("Starting training")
-        best_test_acc = 0.0
         best_validation_acc = 0.0
         best_train_acc = 0.0
         train_goal = 0.0
         validation_goal = 0.0
         best_epoch = 0
         epochs_no_improve = 0
-        train_size = len(self.train_mask)
-        batch = self.dataset.data.to(self.args.device)
-        y = batch.y
+        train_size = len(self.train_dataset)
+
+        train_loader = DataLoader(self.train_dataset, batch_size=self.args.batch_size, shuffle=True)
+        validation_loader = DataLoader(self.validation_dataset, batch_size=self.args.batch_size, shuffle=True)
+        test_loader = DataLoader(self.test_dataset, batch_size=self.args.batch_size, shuffle=True)
 
         for epoch in range(self.args.max_epochs):
             self.model.train()
@@ -84,24 +87,23 @@ class Experiment:
             sample_size = 0
             optimizer.zero_grad()
 
-            out = self.model(batch)
-            loss = self.loss_fn(input=out[self.train_mask], target=y[self.train_mask])
-            total_loss += loss.item()
-            _, train_pred = out[self.train_mask].max(dim=1)
-            train_correct = train_pred.eq(y[self.train_mask]).sum().item() / train_size
+            for graph in train_loader:
+                graph = graph.to(self.args.device)
+                y = graph.y.to(self.args.device)
 
-            loss.backward()
-            optimizer.step()
-            optimizer.zero_grad()
-            scheduler.step(loss)
+                out = self.model(graph)
+                loss = self.loss_fn(input=out, target=y)
+                total_loss += loss
+                loss.backward()
+                optimizer.step()
+                optimizer.zero_grad()
 
             new_best_str = ''
-
+            scheduler.step(total_loss)
             if epoch % self.args.eval_every == 0:
-                train_acc = self.eval(batch=batch, mask=self.train_mask)
-                validation_acc = self.eval(batch=batch, mask=self.validation_mask)
-                test_acc = self.eval(batch=batch, mask=self.test_mask)
-
+                train_acc = self.eval(loader=train_loader)
+                validation_acc = self.eval(loader=validation_loader)
+                test_acc = self.eval(loader=test_loader)
                 if self.args.stopping_criterion == "train":
                     if train_acc > train_goal:
                         best_train_acc = train_acc
@@ -140,11 +142,16 @@ class Experiment:
                         print(f'Best train acc: {best_train_acc}, Best validation loss: {best_validation_acc}, Best test loss: {best_test_acc}')
                     return train_acc, validation_acc, test_acc
 
-    def eval(self, batch, mask):
+    def eval(self, loader):
         self.model.eval()
+        sample_size = len(loader.dataset)
         with torch.no_grad():
-            sample_size = len(mask)
-            _, pred = self.model(batch)[mask].max(dim=1)
-            total_correct = pred.eq(batch.y[mask]).sum().item()
-            acc = total_correct / sample_size
-            return acc
+            total_correct = 0
+            for graph in loader:
+                graph = graph.to(self.args.device)
+                y = graph.y.to(self.args.device)
+                out = self.model(graph)
+                _, pred = out.max(dim=1)
+                total_correct += pred.eq(y).sum().item()
+                
+        return total_correct / sample_size

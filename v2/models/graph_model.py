@@ -43,9 +43,9 @@ class GCN(torch.nn.Module):
     def get_layer(self, in_features, out_features):
         if self.layer_type == "GCN":
             return GCNConv(in_features, out_features)
-        elif self.layer_type == "R-GCN" or self.layer_type == "Rewired-GCN-Sequential":
+        elif self.layer_type == "R-GCN2":
             return SelfLoopGCNConv(in_features, out_features, args=self.args)
-        elif self.layer_type == "Rewired-GCN-Concurrent":
+        elif self.layer_type == "R-GCN":
             return RGCNConv(in_features, out_features, self.num_relations)
         elif self.layer_type == "GIN":
             return GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features)))
@@ -62,13 +62,8 @@ class GCN(torch.nn.Module):
         x = x.float()
         batch_size = len(ptr) - 1
         for i, layer in enumerate(self.layers):
-            if self.layer_type == "Rewired-GCN-Sequential":
-                # rewired graphs treated in separate layers
-                rewiring_mask = (graph.edge_attr == i)
-                rewired_edge_index = edge_index[:,rewiring_mask]
-                x = layer(x, rewired_edge_index)
-            elif self.layer_type == "Rewired-GCN-Concurrent":
-                x = layer(x, edge_index, graph.edge_attr)
+            if self.layer_type == "R-GCN":
+                x = layer(x, edge_index, edge_type=graph.edge_type)
             else:
                 x = layer(x, edge_index)
             if i != self.num_layers - 1:
@@ -76,5 +71,4 @@ class GCN(torch.nn.Module):
                 x = self.dropout(x)
         # assign values to each graph in batch
         x = global_mean_pool(x, batch)
-        x = x.view(-1)
         return x
