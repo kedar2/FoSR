@@ -21,7 +21,7 @@ reddit = list(TUDataset(root="data", name="REDDIT-BINARY"))
 #datasets = {"cornell": cornell, "wisconsin": wisconsin, "texas": texas, "chameleon": chameleon, "squirrel": squirrel, "actor": actor, "cora": cora, "citeseer": citeseer, "pubmed": pubmed}
 datasets = {"reddit": reddit, "imdb": imdb, "mutag": mutag, "enzymes": enzymes, "proteins": proteins, "collab": collab}
 for key in datasets:
-    if key in ["reddit", "imdb"]:
+    if key in ["reddit", "imdb", "collab"]:
         for graph in datasets[key]:
             n = graph.num_nodes
             graph.x = torch.ones((n,1))
