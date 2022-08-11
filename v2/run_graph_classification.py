@@ -35,14 +35,14 @@ def log_to_file(message, filename="results/node_classification_results.txt"):
 
 default_args = AttrDict({
     "dropout": 0.5,
-    "num_layers": 5,
-    "hidden_dim": 128,
+    "num_layers": 4,
+    "hidden_dim": 64,
     "learning_rate": 1e-3,
     "layer_type": "R-GCN",
     "display": True,
     "num_trials": 30,
     "eval_every": 1,
-    "rewiring": "edge_rewire",
+    "rewiring": "sdrf",
     "num_iterations": 10,
     "num_relations": 2,
     "patience": 100,
@@ -72,6 +72,15 @@ def run(args=AttrDict({})):
                 edge_index, edge_type, _ = robustness.edge_rewire(dataset[i].edge_index.numpy(), num_iterations=args.num_iterations)
                 dataset[i].edge_index = torch.tensor(edge_index)
                 dataset[i].edge_type = torch.tensor(edge_type)
+        elif args.rewiring == "sdrf":
+            for i in range(len(dataset)):
+                G = to_networkx(dataset[i], to_undirected=True)
+                x = rewiring.spectral_gap(G)
+                dataset[i].edge_index = sdrf.sdrf(dataset[i], loops=args.num_iterations, remove_edges=False, is_undirected=True)
+                G = to_networkx(dataset[i], to_undirected=True)
+                y = rewiring.spectral_gap(G)
+                print(x, y)
+                input()
         #print(rewiring.spectral_gap(to_networkx(dataset.data, to_undirected=True)))
         for trial in range(args.num_trials):
             #print(f"TRIAL {trial+1}")
