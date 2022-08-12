@@ -65,7 +65,7 @@ def run(args=AttrDict({})):
     for key in datasets:
         args += hyperparams[key]
         accuracies = []
-        print(f"TESTING: {key} ({default_args.rewiring})")
+        print(f"TESTING: {key} ({args.rewiring})")
         dataset = datasets[key]
         if args.rewiring == "edge_rewire":
             for i in range(len(dataset)):
