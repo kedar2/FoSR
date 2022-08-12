@@ -27,7 +27,7 @@ for key in datasets:
             graph.x = torch.ones((n,1))
 
 
-def log_to_file(message, filename="results/node_classification_results.txt"):
+def log_to_file(message, filename="results/graph_classification.txt"):
     print(message)
     file = open(filename, "a")
     file.write(message)
@@ -83,9 +83,19 @@ def run(args=AttrDict({})):
             results.append(args + result_dict)
             accuracies.append(test_acc)
             print(test_acc)
-
+        avg = 100 * np.mean(accuracies)
+        ci = 100 * np.std(accuracies)/(args.num_trials ** 0.5)
         log_to_file(f"RESULTS FOR {key} ({default_args.rewiring}), {args.num_iterations} ITERATIONS:\n")
-        log_to_file(f"average acc: {np.mean(accuracies)}\n")
-        log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(args.num_trials ** 0.5)}\n\n")
+        log_to_file(f"average acc: {avg}\n")
+        log_to_file(f"plus/minus:  {ci}\n\n")
+        results.append({
+            "dataset": key,
+            "rewiring": args.rewiring,
+            "num_iterations": args.num_iterations,
+            "avg_accuracy": avg,
+            "ci": ci
+            })
+    df = pd.DataFrame(results)
+    df.to_csv('results/graph_classification.csv', mode='a')
 if __name__ == '__main__':
     run()
