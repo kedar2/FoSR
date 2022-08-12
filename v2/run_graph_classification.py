@@ -79,8 +79,6 @@ def run(args=AttrDict({})):
         for trial in range(args.num_trials):
             #print(f"TRIAL {trial+1}")
             train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
-            result_dict = {"train_acc": train_acc, "validation_acc": validation_acc, "test_acc": test_acc, "dataset": key}
-            results.append(args + result_dict)
             accuracies.append(test_acc)
             print(test_acc)
         avg = 100 * np.mean(accuracies)
