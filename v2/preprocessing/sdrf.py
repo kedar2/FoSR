@@ -182,7 +182,7 @@ def sdrf(
 ):
     N = data.x.shape[0]
     A = np.zeros(shape=(N, N))
-    m = edge_index.shape[1]
+    m = data.edge_index.shape[1]
     if not "edge_type" in data.keys:
         edge_type = np.zeros(m, dtype=np.int64)
     else:
