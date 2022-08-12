@@ -57,8 +57,7 @@ hyperparams = {
     "imdb": AttrDict({"output_dim": 2}),
     "reddit": AttrDict({"output_dim": 2})
 }
-input()
-#----------------REMOVE THIS
+
 def run(args=AttrDict({})):
     results = []
     args = default_args + args

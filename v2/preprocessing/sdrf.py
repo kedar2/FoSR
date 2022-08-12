@@ -234,6 +234,8 @@ def sdrf(
                 )
             ]
             G.add_edge(k, l)
+            edge_type = np.append(edge_type, 1)
+            edge_type = np.append(edge_type, 1)
             if is_undirected:
                 A[k, l] = A[l, k] = 1
             else:
@@ -257,4 +259,4 @@ def sdrf(
                 if can_add is False:
                     break
 
-    return from_networkx(G).edge_index, edge_type
+    return from_networkx(G).edge_index, torch.tensor(edge_type)
