@@ -24,7 +24,7 @@ def get_args_from_input():
 	parser.add_argument('--num_layers', metavar='', type=int, help='number of hidden layers')
 	parser.add_argument('--batch_size', metavar='', type=int, help='number of samples in each training batch')
 	parser.add_argument('--num_trials', metavar='', type=int, help='number of times the network is trained'),
-	parser.add_argument('--rewiring', metavar='', type=int, help='type of rewiring to be performed'),
+	parser.add_argument('--rewiring', metavar='', type=str, help='type of rewiring to be performed'),
 	parser.add_argument('--num_iterations', metavar='', type=int, help='number of iterations of rewiring')
 	arg_values = parser.parse_args()
 	return AttrDict(vars(arg_values))
