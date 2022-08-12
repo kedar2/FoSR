@@ -74,13 +74,7 @@ def run(args=AttrDict({})):
                 dataset[i].edge_type = torch.tensor(edge_type)
         elif args.rewiring == "sdrf":
             for i in range(len(dataset)):
-                G = to_networkx(dataset[i], to_undirected=True)
-                x = rewiring.spectral_gap(G)
-                dataset[i].edge_index = sdrf.sdrf(dataset[i], loops=args.num_iterations, remove_edges=False, is_undirected=True)
-                G = to_networkx(dataset[i], to_undirected=True)
-                y = rewiring.spectral_gap(G)
-                print(x, y)
-                input()
+                dataset[i].edge_index, dataset[i].edge_type = sdrf.sdrf(dataset[i], loops=args.num_iterations, remove_edges=False, is_undirected=True)
         #print(rewiring.spectral_gap(to_networkx(dataset.data, to_undirected=True)))
         for trial in range(args.num_trials):
             #print(f"TRIAL {trial+1}")

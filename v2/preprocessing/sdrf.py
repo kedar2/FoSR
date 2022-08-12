@@ -182,6 +182,11 @@ def sdrf(
 ):
     N = data.x.shape[0]
     A = np.zeros(shape=(N, N))
+    m = edge_index.shape[1]
+    if not "edge_type" in data.keys:
+        edge_type = np.zeros(m, dtype=np.int64)
+    else:
+        edge_type = data.edge_type
     if is_undirected:
         for i, j in zip(data.edge_index[0], data.edge_index[1]):
             if i != j:
@@ -252,4 +257,4 @@ def sdrf(
                 if can_add is False:
                     break
 
-    return from_networkx(G)
+    return from_networkx(G).edge_index, edge_type
