@@ -1,0 +1,4 @@
+RESULTS FOR imdb (sdrf), 10 ITERATIONS:
+average acc: 52.0
+plus/minus:  0.0
+
