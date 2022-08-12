@@ -24,7 +24,7 @@ pubmed = Planetoid(root="data", name="pubmed")
 #datasets = {"cornell": cornell, "wisconsin": wisconsin, "texas": texas, "chameleon": chameleon, "squirrel": squirrel, "actor": actor, "cora": cora, "citeseer": citeseer, "pubmed": pubmed}
 datasets = {"cora": cora, "citeseer": citeseer, "pubmed": pubmed}
 
-def log_to_file(message, filename="results/node_classification_results.txt"):
+def log_to_file(message, filename="results/node_classification.txt"):
     print(message)
     file = open(filename, "a")
     file.write(message)
@@ -40,7 +40,7 @@ default_args = AttrDict({
     "num_trials": 30,
     "eval_every": 1,
     "rewiring": "edge_rewire",
-    "num_iterations": 0,
+    "num_iterations": 50,
     "num_relations": 2,
     "patience": 100
     })
@@ -59,20 +59,26 @@ def run(args=AttrDict({})):
             edge_index, edge_type, _ = robustness.edge_rewire(dataset.data.edge_index.numpy(), num_iterations=args.num_iterations)
             dataset.data.edge_index = torch.tensor(edge_index)
             dataset.data.edge_type = torch.tensor(edge_type)
+        elif args.rewiring == "sdrf":
+            dataset.data.edge_index, dataset.data.edge_type = sdrf.sdrf(dataset.data, loops=args.num_iterations, remove_edges=False, is_undirected=True)
         #print(rewiring.spectral_gap(to_networkx(dataset.data, to_undirected=True)))
         for trial in range(args.num_trials):
             #print(f"TRIAL {trial+1}")
             train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
-            result_dict = {"train_acc": train_acc, "validation_acc": validation_acc, "test_acc": test_acc, "dataset": key}
-            results.append(args + result_dict)
             accuracies.append(test_acc)
-            print(test_acc)
 
         log_to_file(f"RESULTS FOR {key} ({default_args.rewiring}):\n")
         log_to_file(f"average acc: {np.mean(accuracies)}\n")
         log_to_file(f"plus/minus:  {2 * np.std(accuracies)/(args.num_trials ** 0.5)}\n\n")
+        results.append({
+            "dataset": key,
+            "rewiring": args.rewiring,
+            "num_iterations": args.num_iterations,
+            "avg_accuracy": avg,
+            "ci": ci
+            })
         results_df = pd.DataFrame(results)
-        results_df.to_csv('results/node_classification_results.csv', mode='a')
+        results_df.to_csv('results/node_classification.csv', mode='a')
 
 if __name__ == '__main__':
     run()
