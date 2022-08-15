@@ -18,7 +18,6 @@ proteins = list(TUDataset(root="data", name="PROTEINS"))
 collab = list(TUDataset(root="data", name="COLLAB"))
 imdb = list(TUDataset(root="data", name="IMDB-BINARY"))
 reddit = list(TUDataset(root="data", name="REDDIT-BINARY"))
-#datasets = {"cornell": cornell, "wisconsin": wisconsin, "texas": texas, "chameleon": chameleon, "squirrel": squirrel, "actor": actor, "cora": cora, "citeseer": citeseer, "pubmed": pubmed}
 datasets = {"reddit": reddit, "imdb": imdb, "mutag": mutag, "enzymes": enzymes, "proteins": proteins, "collab": collab}
 for key in datasets:
     if key in ["reddit", "imdb", "collab"]:
@@ -64,7 +63,8 @@ def run(args=AttrDict({})):
     args += get_args_from_input()
     for key in datasets:
         args += hyperparams[key]
-        accuracies = []
+        validation_accuracies = []
+        test_accuracies = []
         print(f"TESTING: {key} ({args.rewiring})")
         dataset = datasets[key]
         if args.rewiring == "edge_rewire":
@@ -75,24 +75,27 @@ def run(args=AttrDict({})):
         elif args.rewiring == "sdrf":
             for i in range(len(dataset)):
                 dataset[i].edge_index, dataset[i].edge_type = sdrf.sdrf(dataset[i], loops=args.num_iterations, remove_edges=False, is_undirected=True)
-        #print(rewiring.spectral_gap(to_networkx(dataset.data, to_undirected=True)))
         for trial in range(args.num_trials):
-            #print(f"TRIAL {trial+1}")
             train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
-            accuracies.append(test_acc)
-            print(test_acc)
-        avg = 100 * np.mean(accuracies)
-        ci = 100 * np.std(accuracies)/(args.num_trials ** 0.5)
-        log_to_file(f"RESULTS FOR {key} ({default_args.rewiring}), {args.num_iterations} ITERATIONS:\n")
-        log_to_file(f"average acc: {avg}\n")
-        log_to_file(f"plus/minus:  {ci}\n\n")
+            validation_accuracies.append(validation_acc)
+            test_accuracies.append(test_acc)
+        val_mean = 100 * np.mean(validation_accuracies)
+        test_mean = 100 * np.mean(test_accuracies)
+        val_ci = 100 * np.std(validation_accuracies)/(args.num_trials ** 0.5)
+        test_ci = 100 * np.std(test_accuracies)/(args.num_trials ** 0.5)
+        log_to_file(f"RESULTS FOR {key} ({args.rewiring}), {args.num_iterations} ITERATIONS:\n")
+        log_to_file(f"average acc: {test_mean}\n")
+        log_to_file(f"plus/minus:  {test_ci}\n\n")
         results.append({
             "dataset": key,
             "rewiring": args.rewiring,
             "num_iterations": args.num_iterations,
-            "avg_accuracy": avg,
-            "ci": ci
+            "test_mean": test_mean,
+            "test_ci": test_ci,
+            "val_mean": val_mean,
+            "val_ci": val_ci
             })
+    df_old = pd.read_csv('results/graph_classification.csv')
     df = pd.DataFrame(results)
     df.to_csv('results/graph_classification.csv', mode='a')
 if __name__ == '__main__':
