@@ -1,0 +1,7 @@
+,dataset,rewiring,num_iterations,test_mean,test_ci,val_mean,val_ci
+0,reddit,edge_rewire,10,66.5,0.0,66.5,0.0
+1,imdb,edge_rewire,10,56.99999999999999,0.0,59.0,0.0
+2,mutag,edge_rewire,10,65.0,0.0,61.111111111111114,0.0
+3,enzymes,edge_rewire,10,20.0,0.0,20.0,0.0
+4,proteins,edge_rewire,10,64.28571428571429,0.0,59.45945945945946,0.0
+5,collab,edge_rewire,10,57.99999999999999,0.0,57.4,0.0

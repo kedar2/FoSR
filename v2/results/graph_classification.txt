@@ -1,0 +1,28 @@
+RESULTS FOR reddit (edge_rewire), 10 ITERATIONS:
+average acc: 65.5
+plus/minus:  0.0
+
+RESULTS FOR reddit (edge_rewire), 10 ITERATIONS:
+average acc: 66.5
+plus/minus:  0.0
+
+RESULTS FOR imdb (edge_rewire), 10 ITERATIONS:
+average acc: 56.99999999999999
+plus/minus:  0.0
+
+RESULTS FOR mutag (edge_rewire), 10 ITERATIONS:
+average acc: 65.0
+plus/minus:  0.0
+
+RESULTS FOR enzymes (edge_rewire), 10 ITERATIONS:
+average acc: 20.0
+plus/minus:  0.0
+
+RESULTS FOR proteins (edge_rewire), 10 ITERATIONS:
+average acc: 64.28571428571429
+plus/minus:  0.0
+
+RESULTS FOR collab (edge_rewire), 10 ITERATIONS:
+average acc: 57.99999999999999
+plus/minus:  0.0
+
