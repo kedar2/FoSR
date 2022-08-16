@@ -1,5 +1,9 @@
 # DIGL pre-processing, from https://github.com/gasteigerjo/gdc.git
 
+import numpy as np
+import torch
+from torch_geometric.data import Data
+
 def get_adj_matrix(dataset) -> np.ndarray:
     num_nodes = dataset.x.shape[0]
     adj_matrix = np.zeros(shape=(num_nodes, num_nodes))
@@ -31,17 +35,17 @@ def get_clipped_matrix(A: np.ndarray, eps: float = 0.01) -> np.ndarray:
     norm[norm <= 0] = 1 # avoid dividing by zero
     return A/norm
 
-def digl(base, alpha, k=None, eps=None):
+def rewire(base, alpha, k=None, eps=None):
     # generate adjacency matrix from sparse representation
     adj_matrix = get_adj_matrix(base)
     # obtain exact PPR matrix
     ppr_matrix = get_ppr_matrix(adj_matrix, alpha=alpha)
 
     if k != None:
-            print(f'Selecting top {k} edges per node.')
+            #print(f'Selecting top {k} edges per node.')
             ppr_matrix = get_top_k_matrix(ppr_matrix, k=k)
     elif eps != None:
-            print(f'Selecting edges with weight greater than {eps}.')
+            #print(f'Selecting edges with weight greater than {eps}.')
             ppr_matrix = get_clipped_matrix(ppr_matrix, eps=eps)
     else:
         raise ValueError
@@ -62,4 +66,4 @@ def digl(base, alpha, k=None, eps=None):
         edge_index=torch.LongTensor(edge_index),
         y=base.y
     )        
-    return data
+    return data.edge_index

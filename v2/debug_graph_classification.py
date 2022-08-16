@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import pandas as pd
 from hyperparams import get_args_from_input
-from preprocessing import rewiring, sdrf, robustness, digl
+from preprocessing import rewiring, sdrf, robustness, robustness2
 
 largest_cc = LargestConnectedComponents()
 to_undirected = ToUndirected()
@@ -18,7 +18,7 @@ proteins = list(TUDataset(root="data", name="PROTEINS"))
 collab = list(TUDataset(root="data", name="COLLAB"))
 imdb = list(TUDataset(root="data", name="IMDB-BINARY"))
 reddit = list(TUDataset(root="data", name="REDDIT-BINARY"))
-datasets = {"reddit": reddit, "imdb": imdb, "mutag": mutag, "enzymes": enzymes, "proteins": proteins, "collab": collab}
+datasets = {"imdb": imdb, "mutag": mutag,"reddit": reddit, "enzymes": enzymes, "proteins": proteins, "collab": collab}
 for key in datasets:
     if key in ["reddit", "imdb", "collab"]:
         for graph in datasets[key]:
@@ -69,17 +69,36 @@ def run(args=AttrDict({})):
         dataset = datasets[key]
         if args.rewiring == "edge_rewire":
             for i in range(len(dataset)):
+                G = to_networkx(dataset[i], to_undirected=True)
+                x = rewiring.spectral_gap(G)
                 edge_index, edge_type, _ = robustness.edge_rewire(dataset[i].edge_index.numpy(), num_iterations=args.num_iterations)
                 dataset[i].edge_index = torch.tensor(edge_index)
                 dataset[i].edge_type = torch.tensor(edge_type)
+                G = to_networkx(dataset[i], to_undirected=True)
+                y = rewiring.spectral_gap(G)
+                print(x, y)
+                input()
+        if args.rewiring == "edge_rewire2":
+            for i in range(len(dataset)):
+                G = to_networkx(dataset[i], to_undirected=True)
+                x = rewiring.spectral_gap(G)
+                edge_index, edge_type, _ = robustness2.edge_rewire(dataset[i].edge_index.numpy(), num_iterations=args.num_iterations)
+                dataset[i].edge_index = torch.tensor(edge_index)
+                dataset[i].edge_type = torch.tensor(edge_type)
+                G = to_networkx(dataset[i], to_undirected=True)
+                y = rewiring.spectral_gap(G)
+                print(x, y)
+                input()
         elif args.rewiring == "sdrf":
+            
             for i in range(len(dataset)):
+                G = to_networkx(dataset[i], to_undirected=True)
+                x = rewiring.spectral_gap(G)
                 dataset[i].edge_index, dataset[i].edge_type = sdrf.sdrf(dataset[i], loops=args.num_iterations, remove_edges=False, is_undirected=True)
-        elif args.rewiring == "digl":
-            for i in range(len(dataset)):
-                m = dataset[i].edge_index.shape[1]
-                dataset[i].edge_type = torch.tensor(np.zeros(m, dtype=np.int64))
-                dataset[i].edge_index = digl.rewire(dataset[i], alpha=0.1, eps=0.001)
+                G = to_networkx(dataset[i], to_undirected=True)
+                y = rewiring.spectral_gap(G)
+                print(x, y)
+                input()
         for trial in range(args.num_trials):
             train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
             validation_accuracies.append(validation_acc)

@@ -26,5 +26,8 @@ def get_args_from_input():
 	parser.add_argument('--num_trials', metavar='', type=int, help='number of times the network is trained'),
 	parser.add_argument('--rewiring', metavar='', type=str, help='type of rewiring to be performed'),
 	parser.add_argument('--num_iterations', metavar='', type=int, help='number of iterations of rewiring')
+	parser.add_argument('--alpha', type=float, help='alpha hyperparameter for DIGL')
+	parser.add_argument('--k', type=int, help='k hyperparameter for DIGL')
+	parser.add_argument('--eps', type=float, help='epsilon hyperparameter for DIGL')
 	arg_values = parser.parse_args()
 	return AttrDict(vars(arg_values))
