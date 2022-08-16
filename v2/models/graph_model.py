@@ -4,7 +4,7 @@ __license__ = "MIT"
 import torch
 import torch.nn as nn
 from torch.nn import ModuleList, Dropout, ReLU
-from torch_geometric.nn import GCNConv, RGCNConv, RGATConv SAGEConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool
+from torch_geometric.nn import GCNConv, RGCNConv, RGATConv, SAGEConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool
 from torch_geometric.data import Data, InMemoryDataset
 
 class SelfLoopGCNConv(torch.nn.Module):
