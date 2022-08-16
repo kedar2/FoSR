@@ -4,7 +4,7 @@ __license__ = "MIT"
 import torch
 import torch.nn as nn
 from torch.nn import ModuleList, Dropout, ReLU
-from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool
+from torch_geometric.nn import GCNConv, RGCNConv, RGATConv SAGEConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool
 from torch_geometric.data import Data, InMemoryDataset
 
 class SelfLoopGCNConv(torch.nn.Module):
@@ -47,6 +47,8 @@ class GCN(torch.nn.Module):
             return SelfLoopGCNConv(in_features, out_features, args=self.args)
         elif self.layer_type == "R-GCN":
             return RGCNConv(in_features, out_features, self.num_relations)
+        elif self.layer_type == "R-GAT":
+            return RGATConv(in_features, out_features, self.num_relations)
         elif self.layer_type == "GIN":
             return GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features)))
         elif self.layer_type == "SAGE":
@@ -62,7 +64,7 @@ class GCN(torch.nn.Module):
         x = x.float()
         batch_size = len(ptr) - 1
         for i, layer in enumerate(self.layers):
-            if self.layer_type == "R-GCN":
+            if self.layer_type == "R-GCN" or self.layer_type == "R-GAT":
                 x = layer(x, edge_index, edge_type=graph.edge_type)
             else:
                 x = layer(x, edge_index)

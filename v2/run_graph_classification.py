@@ -94,14 +94,15 @@ def run(args=AttrDict({})):
         results.append({
             "dataset": key,
             "rewiring": args.rewiring,
+            "layer_type": args.layer_type,
             "num_iterations": args.num_iterations,
             "test_mean": test_mean,
             "test_ci": test_ci,
             "val_mean": val_mean,
             "val_ci": val_ci
             })
-    df_old = pd.read_csv('results/graph_classification.csv')
     df = pd.DataFrame(results)
-    df.to_csv('results/graph_classification.csv', mode='a')
+    with open('results/graph_classification.csv', 'a') as f:
+        df.to_csv(f, mode='a', header=f.tell()==0)
 if __name__ == '__main__':
     run()
