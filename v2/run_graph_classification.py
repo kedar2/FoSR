@@ -77,11 +77,9 @@ def run(args=AttrDict({})):
                 dataset[i].edge_index, dataset[i].edge_type = sdrf.sdrf(dataset[i], loops=args.num_iterations, remove_edges=False, is_undirected=True)
         elif args.rewiring == "digl":
             for i in range(len(dataset)):
-                print(dataset[i])
                 dataset[i].edge_index = digl.rewire(dataset[i], alpha=0.1, eps=0.05)
                 m = dataset[i].edge_index.shape[1]
                 dataset[i].edge_type = torch.tensor(np.zeros(m, dtype=np.int64))
-                print(dataset[i])
                 input()
         for trial in range(args.num_trials):
             train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
