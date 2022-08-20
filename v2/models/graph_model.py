@@ -24,7 +24,7 @@ class RGATConv(torch.nn.Module):
 
 class RGINConv(torch.nn.Module):
     def __init__(self, in_features, out_features, num_relations):
-        super(RGATConv, self).__init__()
+        super(RGINConv, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
         self.num_relations = num_relations
