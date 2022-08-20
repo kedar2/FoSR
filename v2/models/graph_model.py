@@ -1,26 +1,44 @@
-__author__ = "Stefan Weißenberger and Johannes Gasteiger"
-__license__ = "MIT"
-
 import torch
 import torch.nn as nn
 from torch.nn import ModuleList, Dropout, ReLU
-from torch_geometric.nn import GCNConv, RGCNConv, RGATConv, SAGEConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool
+from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GATConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool
 from torch_geometric.data import Data, InMemoryDataset
 
-class SelfLoopGCNConv(torch.nn.Module):
-    # R-GCN layer with two classes - the original edge list, and self-loops.
-    def __init__(self, in_features, out_features, args):
-        super(SelfLoopGCNConv, self).__init__()
+class RGATConv(torch.nn.Module):
+    def __init__(self, in_features, out_features, num_relations):
+        super(RGATConv, self).__init__()
         self.in_features = in_features
         self.out_features = out_features
-        self.layer1 = GCNConv(in_features, out_features)
-        self.layer2 = GCNConv(in_features, out_features)
-        self.device = args.device
-    def forward(self, x, edge_index):
-        num_nodes = x.size(0)
-        all_nodes = torch.arange(num_nodes)
-        only_self_loops = torch.stack([all_nodes, all_nodes]).to(self.device)
-        return self.layer1(x, edge_index) + self.layer2(x, only_self_loops)
+        self.num_relations = num_relations
+        self.self_loop_conv = torch.nn.Linear(in_features, out_features)
+        convs = []
+        for i in range(self.num_relations):
+            convs.append(GATConv(in_features, out_features))
+        self.convs = ModuleList(convs)
+    def forward(self, x, edge_index, edge_type):
+        x_new = self.self_loop_conv(x)
+        for i, conv in enumerate(self.convs):
+            rel_edge_index = edge_index[:, edge_type==i]
+            x_new += conv(x, rel_edge_index)
+        return x_new
+
+class RGINConv(torch.nn.Module):
+    def __init__(self, in_features, out_features, num_relations):
+        super(RGATConv, self).__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.num_relations = num_relations
+        self.self_loop_conv = torch.nn.Linear(in_features, out_features)
+        convs = []
+        for i in range(self.num_relations):
+            convs.append(GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features))))
+        self.convs = ModuleList(convs)
+    def forward(self, x, edge_index, edge_type):
+        x_new = self.self_loop_conv(x)
+        for i, conv in enumerate(self.convs):
+            rel_edge_index = edge_index[:, edge_type==i]
+            x_new += conv(x, rel_edge_index)
+        return x_new
 
 class GCN(torch.nn.Module):
     def __init__(self, args):
@@ -49,6 +67,8 @@ class GCN(torch.nn.Module):
             return RGCNConv(in_features, out_features, self.num_relations)
         elif self.layer_type == "R-GAT":
             return RGATConv(in_features, out_features, self.num_relations)
+        elif self.layer_type == "R-GIN":
+            return RGINConv(in_features, out_features, self.num_relations)
         elif self.layer_type == "GIN":
             return GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features)))
         elif self.layer_type == "SAGE":
@@ -64,7 +84,7 @@ class GCN(torch.nn.Module):
         x = x.float()
         batch_size = len(ptr) - 1
         for i, layer in enumerate(self.layers):
-            if self.layer_type == "R-GCN" or self.layer_type == "R-GAT":
+            if self.layer_type == "R-GCN" or self.layer_type == "R-GAT" or self.layer_type == "R-GIN":
                 x = layer(x, edge_index, edge_type=graph.edge_type)
             else:
                 x = layer(x, edge_index)
