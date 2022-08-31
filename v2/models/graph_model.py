@@ -84,7 +84,7 @@ class GCN(torch.nn.Module):
         x = x.float()
         batch_size = len(ptr) - 1
         for i, layer in enumerate(self.layers):
-            if self.layer_type == "R-GCN" or self.layer_type == "R-GAT" or self.layer_type == "R-GIN":
+            if self.layer_type in ["R-GCN", "R-GAT", "R-GIN", "FiLM"]:
                 x = layer(x, edge_index, edge_type=graph.edge_type)
             else:
                 x = layer(x, edge_index)
