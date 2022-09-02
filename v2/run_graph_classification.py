@@ -43,7 +43,6 @@ default_args = AttrDict({
     "eval_every": 1,
     "rewiring": "sdrf",
     "num_iterations": 10,
-    "num_relations": 2,
     "patience": 100,
     "output_dim": 2
     })

@@ -184,7 +184,7 @@ def sdrf(
     A = np.zeros(shape=(N, N))
     m = data.edge_index.shape[1]
     if not "edge_type" in data.keys:
-        edge_type = np.zeros(m, dtype=np.int64)
+        edge_type = np.zeros(m, dtype=int)
     else:
         edge_type = data.edge_type
     if is_undirected:
@@ -258,5 +258,4 @@ def sdrf(
             else:
                 if can_add is False:
                     break
-
     return from_networkx(G).edge_index, torch.tensor(edge_type)

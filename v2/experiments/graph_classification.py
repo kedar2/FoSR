@@ -48,7 +48,15 @@ class Experiment:
             self.args.hidden_layers = [self.args.hidden_dim] * self.args.num_layers
         if self.args.input_dim is None:
             self.args.input_dim = self.dataset[0].x.shape[1]
-
+        for graph in self.dataset:
+            if not "edge_type" in graph.keys:
+                num_edges = graph.edge_index.shape[1]
+                graph.edge_type = torch.zeros(num_edges, dtype=int)
+        if self.args.num_relations is None:
+            if self.args.rewiring == "None":
+                self.args.num_relations = 1
+            else:
+                self.args.num_relations = 2
         self.model = GCN(self.args).to(self.args.device)
        
         # randomly assign a train/validation/test split, or train/validation split if test already assigned
