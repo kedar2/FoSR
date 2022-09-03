@@ -51,10 +51,3 @@ def create_neighborsmatch_dataset(G, root_vertex, vertices_to_label, sample_size
 		x, y, root_mask = create_neighborsmatch_labels(G, root_vertex, vertices_to_label)
 		data_list.append(Data(x=x, y=y, edge_index=edge_index, root_mask=root_mask))
 	return data_list
-
-if __name__ == "__main__":
-	G = path_of_cliques(5, 10)
-	vertices_to_label = list(range(0, 100))
-	nmatch = create_neighborsmatch_dataset(G, 499, vertices_to_label, 10000)
-
-
