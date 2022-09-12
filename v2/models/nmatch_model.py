@@ -1,6 +1,3 @@
-__author__ = "Stefan Weißenberger and Johannes Gasteiger"
-__license__ = "MIT"
-
 import torch
 import torch.nn as nn
 from torch.nn import ModuleList, Dropout, ReLU

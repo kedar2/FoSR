@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import pandas as pd
 from hyperparams import get_args_from_input
-from preprocessing import rewiring, sdrf, robustness, robustness2
+from preprocessing import rewiring, sdrf, robustness, digl
 
 largest_cc = LargestConnectedComponents()
 to_undirected = ToUndirected()
@@ -18,7 +18,7 @@ proteins = list(TUDataset(root="data", name="PROTEINS"))
 collab = list(TUDataset(root="data", name="COLLAB"))
 imdb = list(TUDataset(root="data", name="IMDB-BINARY"))
 reddit = list(TUDataset(root="data", name="REDDIT-BINARY"))
-datasets = {"imdb": imdb, "mutag": mutag,"reddit": reddit, "enzymes": enzymes, "proteins": proteins, "collab": collab}
+datasets = {"imdb": imdb, "mutag": mutag, "enzymes": enzymes, "proteins": proteins, "collab": collab}
 for key in datasets:
     if key in ["reddit", "imdb", "collab"]:
         for graph in datasets[key]:
@@ -38,14 +38,15 @@ default_args = AttrDict({
     "hidden_dim": 64,
     "learning_rate": 1e-3,
     "layer_type": "R-GCN",
-    "display": True,
-    "num_trials": 30,
+    "display": False,
+    "num_trials": 100,
     "eval_every": 1,
     "rewiring": "sdrf",
     "num_iterations": 10,
-    "num_relations": 2,
     "patience": 100,
-    "output_dim": 2
+    "output_dim": 2,
+    "alpha": 0.05,
+    "eps": 0.01
     })
 
 hyperparams = {
@@ -69,36 +70,18 @@ def run(args=AttrDict({})):
         dataset = datasets[key]
         if args.rewiring == "edge_rewire":
             for i in range(len(dataset)):
-                G = to_networkx(dataset[i], to_undirected=True)
-                x = rewiring.spectral_gap(G)
                 edge_index, edge_type, _ = robustness.edge_rewire(dataset[i].edge_index.numpy(), num_iterations=args.num_iterations)
                 dataset[i].edge_index = torch.tensor(edge_index)
                 dataset[i].edge_type = torch.tensor(edge_type)
-                G = to_networkx(dataset[i], to_undirected=True)
-                y = rewiring.spectral_gap(G)
-                print(x, y)
-                input()
-        if args.rewiring == "edge_rewire2":
-            for i in range(len(dataset)):
-                G = to_networkx(dataset[i], to_undirected=True)
-                x = rewiring.spectral_gap(G)
-                edge_index, edge_type, _ = robustness2.edge_rewire(dataset[i].edge_index.numpy(), num_iterations=args.num_iterations)
-                dataset[i].edge_index = torch.tensor(edge_index)
-                dataset[i].edge_type = torch.tensor(edge_type)
-                G = to_networkx(dataset[i], to_undirected=True)
-                y = rewiring.spectral_gap(G)
-                print(x, y)
-                input()
         elif args.rewiring == "sdrf":
-            
             for i in range(len(dataset)):
-                G = to_networkx(dataset[i], to_undirected=True)
-                x = rewiring.spectral_gap(G)
                 dataset[i].edge_index, dataset[i].edge_type = sdrf.sdrf(dataset[i], loops=args.num_iterations, remove_edges=False, is_undirected=True)
-                G = to_networkx(dataset[i], to_undirected=True)
-                y = rewiring.spectral_gap(G)
-                print(x, y)
-                input()
+        elif args.rewiring == "digl":
+            for i in range(len(dataset)):
+                print(i)
+                dataset[i].edge_index = digl.rewire(dataset[i], alpha=args.alpha, eps=args.eps)
+                m = dataset[i].edge_index.shape[1]
+                dataset[i].edge_type = torch.tensor(np.zeros(m, dtype=np.int64))
         for trial in range(args.num_trials):
             train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
             validation_accuracies.append(validation_acc)
@@ -113,14 +96,15 @@ def run(args=AttrDict({})):
         results.append({
             "dataset": key,
             "rewiring": args.rewiring,
+            "layer_type": args.layer_type,
             "num_iterations": args.num_iterations,
             "test_mean": test_mean,
             "test_ci": test_ci,
             "val_mean": val_mean,
             "val_ci": val_ci
             })
-    df_old = pd.read_csv('results/graph_classification.csv')
     df = pd.DataFrame(results)
-    df.to_csv('results/graph_classification.csv', mode='a')
+    with open('results/graph_classification.csv', 'a') as f:
+        df.to_csv(f, mode='a', header=f.tell()==0)
 if __name__ == '__main__':
     run()

@@ -309,7 +309,7 @@ def greedy_rlef(G, triangle_data=None):
 	triangle_data[(u,j)] = len(j_nbhd.intersection(u_nbhd))
 	return triangle_data
 
-def greedy_rlef_2(G, triangle_data=None, temperature=5):
+def grlef(G, triangle_data=None, temperature=5):
 	# samples greedily according to inverse triangle count
 	
 	if triangle_data == None:

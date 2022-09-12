@@ -1,9 +1,11 @@
 from attrdict import AttrDict
 from torch_geometric.utils import to_networkx, from_networkx
+from torch_geometric.data import Data
 from experiments.nmatch_classification import Experiment
 import torch
 import numpy as np
 import pandas as pd
+import networkx as nx
 from hyperparams import get_args_from_input
 from preprocessing import rewiring, robustness, nmatch
 
@@ -31,10 +33,10 @@ default_args = AttrDict({
     "hidden_dim": 64,
     "learning_rate": 1e-3,
     "layer_type": "GAT",
-    "display": True,
-    "num_trials": 375,
+    "display": False,
+    "num_trials": 250,
     "eval_every": 1,
-    "rewiring": "GRLEF",
+    "rewiring": "edge_rewire",
     "num_iterations": 50
     })
 
@@ -54,7 +56,11 @@ def run(args=AttrDict({})):
         G = nmatch.path_of_cliques(3, 10)
         if args.rewiring == "GRLEF":
             for i in range(args.num_iterations):
-                rewiring.greedy_rlef_2(G)
+                rewiring.grlef(G)
+        if args.rewiring == "edge_rewire":
+            edge_index = from_networkx(G).edge_index
+            edge_index, _, _ = robustness.edge_rewire(edge_index.numpy(), num_iterations=args.num_iterations)
+            G = nx.from_edgelist(edge_index.T)
         dataset = nmatch.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
         print(f"TRIAL {trial}")
         train_acc = Experiment(args=args, dataset=dataset).run()

@@ -44,7 +44,9 @@ default_args = AttrDict({
     "rewiring": "sdrf",
     "num_iterations": 10,
     "patience": 100,
-    "output_dim": 2
+    "output_dim": 2,
+    "alpha": 0.1,
+    "eps": 0.001
     })
 
 hyperparams = {
@@ -95,6 +97,8 @@ def run(args=AttrDict({})):
             "rewiring": args.rewiring,
             "layer_type": args.layer_type,
             "num_iterations": args.num_iterations,
+            "alpha": args.alpha,
+            "eps": args.eps,
             "test_mean": test_mean,
             "test_ci": test_ci,
             "val_mean": val_mean,
