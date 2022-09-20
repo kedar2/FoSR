@@ -207,7 +207,6 @@ def sdrf(
         ix_min = C.argmin()
         x = ix_min // N
         y = ix_min % N
-
         if is_undirected:
             x_neighbors = list(G.neighbors(x)) + [x]
             y_neighbors = list(G.neighbors(y)) + [y]
@@ -219,7 +218,6 @@ def sdrf(
             for j in y_neighbors:
                 if (i != j) and (not G.has_edge(i, j)):
                     candidates.append((i, j))
-
         if len(candidates):
             D = balanced_forman_post_delta(A, x, y, x_neighbors, y_neighbors)
             improvements = []

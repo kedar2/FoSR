@@ -37,7 +37,7 @@ default_args = AttrDict({
     "learning_rate": 1e-3,
     "layer_type": "R-GCN",
     "display": False,
-    "num_trials": 30,
+    "num_trials": 100,
     "eval_every": 1,
     "rewiring": "edge_rewire",
     "num_iterations": 50,
@@ -74,11 +74,11 @@ def run(args=AttrDict({})):
             "dataset": key,
             "rewiring": args.rewiring,
             "num_iterations": args.num_iterations,
-            "avg_accuracy": avg,
-            "ci": ci
+            "avg_accuracy": np.mean(accuracies),
+            "ci":  2 * np.std(accuracies)/(args.num_trials ** 0.5)
             })
         results_df = pd.DataFrame(results)
-        results_df.to_csv('results/node_classification.csv', mode='a')
-
+        with open('results/node_classification.csv', 'a') as f:
+            results_df.to_csv(f, mode='a', header=f.tell()==0)
 if __name__ == '__main__':
     run()

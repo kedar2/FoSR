@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import networkx as nx
 from hyperparams import get_args_from_input
-from preprocessing import rewiring, robustness, nmatch
+from preprocessing import rewiring, robustness, nmatch, sdrf
 
 def log_to_file(message, filename="results/neighborsmatch_results.txt"):
     print(message)
@@ -28,7 +28,7 @@ def produce_rewired_dataset(dataset_source, num_iterations):
 
 default_args = AttrDict({
     "dropout": 0.0,
-    "patience": 20,
+    "patience": 100,
     "num_layers": 6,
     "hidden_dim": 64,
     "learning_rate": 1e-3,
@@ -57,10 +57,12 @@ def run(args=AttrDict({})):
         if args.rewiring == "GRLEF":
             for i in range(args.num_iterations):
                 rewiring.grlef(G)
-        if args.rewiring == "edge_rewire":
+        elif args.rewiring == "edge_rewire":
             edge_index = from_networkx(G).edge_index
             edge_index, _, _ = robustness.edge_rewire(edge_index.numpy(), num_iterations=args.num_iterations)
             G = nx.from_edgelist(edge_index.T)
+        if args.rewiring == "sdrf":
+            G, _ = rewiring.sdrf(G, max_iterations=args.num_iterations)
         dataset = nmatch.create_neighborsmatch_dataset(G, 29, vertices_to_label, 10000)
         print(f"TRIAL {trial}")
         train_acc = Experiment(args=args, dataset=dataset).run()

@@ -1,8 +1,12 @@
 import torch
 import torch.nn as nn
 from torch.nn import ModuleList, Dropout, ReLU
-from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GATConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool
+from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GATConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool, DenseGCNConv, DenseGINConv
 from torch_geometric.data import Data, InMemoryDataset
+from torch_geometric.utils import to_dense_batch, to_dense_adj
+from models.diffwire.CT_layer import dense_CT_rewiring
+from models.diffwire.MinCut_Layer import dense_mincut_pool
+from models.diffwire.GAP_layer import dense_mincut_rewiring
 
 class RGATConv(torch.nn.Module):
     def __init__(self, in_features, out_features, num_relations):
@@ -71,6 +75,10 @@ class GCN(torch.nn.Module):
             return RGINConv(in_features, out_features, self.num_relations)
         elif self.layer_type == "GIN":
             return GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features)))
+        elif self.layer_type == "Dense-GCN":
+            return DenseGCNConv(in_features, out_features)
+        elif self.layer_type == "Dense-GIN":
+            return DenseGINConv(in_features, out_features)
         elif self.layer_type == "SAGE":
             return SAGEConv(in_features, out_features)
         elif self.layer_type == "FiLM":
@@ -83,9 +91,16 @@ class GCN(torch.nn.Module):
         x, edge_index, ptr, batch = graph.x, graph.edge_index, graph.ptr, graph.batch
         x = x.float()
         batch_size = len(ptr) - 1
+        if self.args.rewiring == "diffwire-GAP":
+            print(edge_index)
+            print(batch)
+            print(to_dense_adj(edge_index, batch))
+            input()
         for i, layer in enumerate(self.layers):
             if self.layer_type in ["R-GCN", "R-GAT", "R-GIN", "FiLM"]:
                 x = layer(x, edge_index, edge_type=graph.edge_type)
+            elif self.layer_type in ["Dense-GCN", "Dense-GIN", "Dense-R-GCN","Dense-R-GIN"]:
+                x = layer(x, graph.adj)
             else:
                 x = layer(x, edge_index)
             if i != self.num_layers - 1:

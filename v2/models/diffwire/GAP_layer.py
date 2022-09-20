@@ -2,11 +2,11 @@ import time
 import torch
 from torch_geometric.utils import to_dense_batch, to_dense_adj
 from torch_geometric.nn import GCNConv, DenseGraphConv
-from layers.utils.ein_utils import _rank3_diag, _rank3_trace
-from layers.utils.approximate_fiedler import approximate_Fiedler 
-from layers.utils.approximate_fiedler import NLderivative_of_lambda2_wrt_adjacency, NLfiedler_values 
-from layers.utils.approximate_fiedler import derivative_of_lambda2_wrt_adjacency, fiedler_values
-from layers.utils.approximate_fiedler import NLderivative_of_lambda2_wrt_adjacencyV2, NLfiedler_valuesV2
+from models.diffwire.utils.ein_utils import _rank3_diag, _rank3_trace
+from models.diffwire.utils.approximate_fiedler import approximate_Fiedler 
+from models.diffwire.utils.approximate_fiedler import NLderivative_of_lambda2_wrt_adjacency, NLfiedler_values 
+from models.diffwire.utils.approximate_fiedler import derivative_of_lambda2_wrt_adjacency, fiedler_values
+from models.diffwire.utils.approximate_fiedler import NLderivative_of_lambda2_wrt_adjacencyV2, NLfiedler_valuesV2
 
 def dense_mincut_rewiring(x, adj, s, mask=None, derivative = None, EPS=1e-15, device=None): # x torch.Size([20, 40, 32]) ; mask torch.Size([20, 40]) batch_size=20
     
@@ -135,5 +135,5 @@ def dense_mincut_rewiring(x, adj, s, mask=None, derivative = None, EPS=1e-15, de
     out_adj = (out_adj / d) / d.transpose(1, 2) # ([20, k, k] / [20, k, 1] ) -> [20, k, k]
     # out_adj torch.Size([20, k, k]) 
     #print("out_adj size", out_adj.size())"""
-    return  Ac, mincut_loss, ortho_loss # [20, k, 32], [20, k, k], [1], [1]
+    return  Ac, mincut_loss + ortho_loss # [20, k, 32], [20, k, k], [1], [1]
     #return out, out_adj, mincut_loss, ortho_loss # [20, k, 32], [20, k, k], [1], [1]

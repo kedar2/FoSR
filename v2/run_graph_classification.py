@@ -1,6 +1,6 @@
 from attrdict import AttrDict
 from torch_geometric.datasets import TUDataset
-from torch_geometric.utils import to_networkx, from_networkx
+from torch_geometric.utils import to_networkx, from_networkx, to_dense_adj
 from torch_geometric.transforms import LargestConnectedComponents, ToUndirected
 from experiments.graph_classification import Experiment
 import torch
@@ -81,6 +81,9 @@ def run(args=AttrDict({})):
                 dataset[i].edge_index = digl.rewire(dataset[i], alpha=0.1, eps=0.05)
                 m = dataset[i].edge_index.shape[1]
                 dataset[i].edge_type = torch.tensor(np.zeros(m, dtype=np.int64))
+        elif "diffwire-???" in args.rewiring:
+            for i in range(len(dataset)):
+                dataset[i].adj = to_dense_adj(dataset[i].x)
         for trial in range(args.num_trials):
             train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
             validation_accuracies.append(validation_acc)

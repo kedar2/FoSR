@@ -1,7 +1,7 @@
 import torch
 from torch_geometric.utils import to_dense_batch, to_dense_adj
 from torch_geometric.nn import GCNConv, DenseGraphConv
-from layers.utils.ein_utils import _rank3_diag, _rank3_trace
+from models.diffwire.utils.ein_utils import _rank3_diag, _rank3_trace
 
 def dense_mincut_pool(x, adj, s, mask=None, EPS=1e-15): # x torch.Size([20, 40, 32]) ; mask torch.Size([20, 40]) batch_size=20
     #print("Input x size to mincut pool", x.size())
@@ -78,4 +78,4 @@ def dense_mincut_pool(x, adj, s, mask=None, EPS=1e-15): # x torch.Size([20, 40, 
     out_adj = (out_adj / d) / d.transpose(1, 2) # ([20, k, k] / [20, k, 1] ) -> [20, k, k]
     # out_adj torch.Size([20, k, k]) 
     #print("out_adj size", out_adj.size())
-    return out, out_adj, mincut_loss, ortho_loss # [20, k, 32], [20, k, k], [1], [1]
+    return out, out_adj, mincut_loss + ortho_loss # [20, k, 32], [20, k, k], [1], [1]
