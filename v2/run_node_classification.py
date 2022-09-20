@@ -56,9 +56,12 @@ def run(args=AttrDict({})):
         dataset.data = to_undirected(dataset.data)
         dataset.data = largest_cc(dataset.data)
         if args.rewiring == "edge_rewire":
+            print(dataset.data.edge_index)
             edge_index, edge_type, _ = robustness.edge_rewire(dataset.data.edge_index.numpy(), num_iterations=args.num_iterations)
             dataset.data.edge_index = torch.tensor(edge_index)
             dataset.data.edge_type = torch.tensor(edge_type)
+            print(dataset.data.edge_index)
+            input()
         elif args.rewiring == "sdrf":
             dataset.data.edge_index, dataset.data.edge_type = sdrf.sdrf(dataset.data, loops=args.num_iterations, remove_edges=False, is_undirected=True)
         #print(rewiring.spectral_gap(to_networkx(dataset.data, to_undirected=True)))

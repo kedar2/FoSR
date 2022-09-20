@@ -1,6 +1,6 @@
 from attrdict import AttrDict
-from torch_geometric.datasets import TUDataset
-from torch_geometric.utils import to_networkx, from_networkx
+from torch_geometric.datasets import GNNBenchmarkDataset
+from torch_geometric.utils import to_networkx, from_networkx, to_dense_adj
 from torch_geometric.transforms import LargestConnectedComponents, ToUndirected
 from experiments.graph_classification import Experiment
 import torch
@@ -18,7 +18,7 @@ proteins = list(TUDataset(root="data", name="PROTEINS"))
 collab = list(TUDataset(root="data", name="COLLAB"))
 imdb = list(TUDataset(root="data", name="IMDB-BINARY"))
 reddit = list(TUDataset(root="data", name="REDDIT-BINARY"))
-datasets = {"imdb": imdb, "mutag": mutag, "enzymes": enzymes, "proteins": proteins, "collab": collab}
+datasets = {"reddit": reddit, "imdb": imdb, "mutag": mutag, "enzymes": enzymes, "proteins": proteins, "collab": collab}
 for key in datasets:
     if key in ["reddit", "imdb", "collab"]:
         for graph in datasets[key]:
@@ -45,8 +45,8 @@ default_args = AttrDict({
     "num_iterations": 10,
     "patience": 100,
     "output_dim": 2,
-    "alpha": 0.05,
-    "eps": 0.01
+    "alpha": 0.1,
+    "eps": 0.001
     })
 
 hyperparams = {
@@ -78,10 +78,12 @@ def run(args=AttrDict({})):
                 dataset[i].edge_index, dataset[i].edge_type = sdrf.sdrf(dataset[i], loops=args.num_iterations, remove_edges=False, is_undirected=True)
         elif args.rewiring == "digl":
             for i in range(len(dataset)):
-                print(i)
-                dataset[i].edge_index = digl.rewire(dataset[i], alpha=args.alpha, eps=args.eps)
+                dataset[i].edge_index = digl.rewire(dataset[i], alpha=0.1, eps=0.05)
                 m = dataset[i].edge_index.shape[1]
                 dataset[i].edge_type = torch.tensor(np.zeros(m, dtype=np.int64))
+        elif "diffwire-???" in args.rewiring:
+            for i in range(len(dataset)):
+                dataset[i].adj = to_dense_adj(dataset[i].x)
         for trial in range(args.num_trials):
             train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
             validation_accuracies.append(validation_acc)
@@ -98,6 +100,8 @@ def run(args=AttrDict({})):
             "rewiring": args.rewiring,
             "layer_type": args.layer_type,
             "num_iterations": args.num_iterations,
+            "alpha": args.alpha,
+            "eps": args.eps,
             "test_mean": test_mean,
             "test_ci": test_ci,
             "val_mean": val_mean,

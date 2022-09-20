@@ -462,3 +462,95 @@ RESULTS FOR pubmed (edge_rewire):
 average acc: 0.8590593306288031
 plus/minus:  0.000985722305667268
 
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8840086206896551
+plus/minus:  0.0010772838139128612
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8848326572008115
+plus/minus:  0.0009530387702959924
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8591176470588234
+plus/minus:  0.001017452185429699
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8833012170385396
+plus/minus:  0.001018111620380739
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.7679310344827587
+plus/minus:  0.023614767759936033
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8852510141987829
+plus/minus:  0.0009331250254902083
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.7787854969574036
+plus/minus:  0.019452078120988224
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.7788615618661258
+plus/minus:  0.020582544071697337
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8597743407707911
+plus/minus:  0.0008987076029425438
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8850963488843813
+plus/minus:  0.0011111004764876747
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8601597363083165
+plus/minus:  0.0009571279029705566
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.7717621703853955
+plus/minus:  0.02304374472071833
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.7827332657200811
+plus/minus:  0.018887739688481786
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8839604462474645
+plus/minus:  0.0010304534143697796
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8597312373225152
+plus/minus:  0.0009601088359090804
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.7841404665314403
+plus/minus:  0.01840896286911719
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.7856186612576065
+plus/minus:  0.018382449436691546
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8592165314401623
+plus/minus:  0.0010745811816720813
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8592900608519272
+plus/minus:  0.0009357851196407656
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8821855983772818
+plus/minus:  0.0008950618856844577
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8850912778904666
+plus/minus:  0.0009575454565454089
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8818711967545638
+plus/minus:  0.000998754104575364
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8596551724137929
+plus/minus:  0.0010290115030351305
+

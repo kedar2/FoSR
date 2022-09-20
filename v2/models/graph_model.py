@@ -92,9 +92,10 @@ class GCN(torch.nn.Module):
         x = x.float()
         batch_size = len(ptr) - 1
         if self.args.rewiring == "diffwire-GAP":
-            print(edge_index)
-            print(batch)
-            print(to_dense_adj(edge_index, batch))
+            x, mask = to_dense_batch(x, batch)
+            adj = to_dense_adj(edge_index, batch)
+            x = dense_mincut_rewiring(x, adj, x, mask, derivative="normalized")
+            print(x)
             input()
         for i, layer in enumerate(self.layers):
             if self.layer_type in ["R-GCN", "R-GAT", "R-GIN", "FiLM"]:
