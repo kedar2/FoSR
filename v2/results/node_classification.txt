@@ -298,3 +298,167 @@ RESULTS FOR citeseer (edge_rewire):
 average acc: 0.7298584905660376
 plus/minus:  0.004072161915983858
 
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.6232075471698113
+plus/minus:  0.009110765718412041
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.6314622641509433
+plus/minus:  0.007523139810575738
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7290330188679244
+plus/minus:  0.004003544509122567
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.6274764150943395
+plus/minus:  0.009282360912025753
+
+RESULTS FOR cora (edge_rewire):
+average acc: 0.843340040241449
+plus/minus:  0.0033378674661718915
+
+RESULTS FOR cora (edge_rewire):
+average acc: 0.8440241448692153
+plus/minus:  0.002987357762604108
+
+RESULTS FOR cora (edge_rewire):
+average acc: 0.8478470824949699
+plus/minus:  0.0031190523602461287
+
+RESULTS FOR cora (edge_rewire):
+average acc: 0.8441046277665997
+plus/minus:  0.003019170839244862
+
+RESULTS FOR cora (edge_rewire):
+average acc: 0.8468611670020121
+plus/minus:  0.0026552617887994944
+
+RESULTS FOR cora (edge_rewire):
+average acc: 0.8411267605633804
+plus/minus:  0.003124830760693048
+
+RESULTS FOR cora (edge_rewire):
+average acc: 0.8440241448692153
+plus/minus:  0.0031178579994396573
+
+RESULTS FOR cora (edge_rewire):
+average acc: 0.846841046277666
+plus/minus:  0.00283825194173279
+
+RESULTS FOR cora (edge_rewire):
+average acc: 0.8439034205231388
+plus/minus:  0.002635234242647314
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.6306603773584905
+plus/minus:  0.008142771934732108
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.619622641509434
+plus/minus:  0.009508451207080078
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.6211792452830188
+plus/minus:  0.008649914549630716
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.6283018867924528
+plus/minus:  0.008624468242981135
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.6255896226415093
+plus/minus:  0.0068187302901397216
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7389150943396227
+plus/minus:  0.003900290264960213
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7340094339622641
+plus/minus:  0.004000033374727268
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.730872641509434
+plus/minus:  0.0040762441397608744
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7221462264150944
+plus/minus:  0.004251931376953097
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7276886792452829
+plus/minus:  0.00425544904382766
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7308254716981132
+plus/minus:  0.0041341076892861
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7305896226415095
+plus/minus:  0.0037533982466568102
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7286084905660377
+plus/minus:  0.003817699104263484
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7317924528301887
+plus/minus:  0.004446029344402967
+
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7290801886792453
+plus/minus:  0.004458809844124226
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.886389452332657
+plus/minus:  0.0010024850935505436
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.7835218052738336
+plus/minus:  0.018005623866012625
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8857555780933062
+plus/minus:  0.001010901841990213
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8864046653144017
+plus/minus:  0.0008441333113678323
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8855299188640974
+plus/minus:  0.0010391815244142752
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.885139452332657
+plus/minus:  0.0009300400534528287
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8855831643002028
+plus/minus:  0.0009473566717907016
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8845841784989861
+plus/minus:  0.0009978654357354695
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8855704868154157
+plus/minus:  0.0008353974213694588
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.886432555780933
+plus/minus:  0.0009876102723689467
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.7693331643002028
+plus/minus:  0.019767193987881244
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8594016227180528
+plus/minus:  0.0010290364927140283
+
+RESULTS FOR pubmed (edge_rewire):
+average acc: 0.8590593306288031
+plus/minus:  0.000985722305667268
+
