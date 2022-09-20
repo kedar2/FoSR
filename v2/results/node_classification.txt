@@ -294,3 +294,7 @@ RESULTS FOR citeseer (edge_rewire):
 average acc: 0.7280188679245283
 plus/minus:  0.004082235826284738
 
+RESULTS FOR citeseer (edge_rewire):
+average acc: 0.7298584905660376
+plus/minus:  0.004072161915983858
+
