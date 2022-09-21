@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from measure_smoothing import dirichlet_normalized
 from attrdict import AttrDict
 from torch_geometric.loader import DataLoader
 from torch.utils.data import random_split
@@ -88,6 +89,7 @@ class Experiment:
         train_loader = DataLoader(self.train_dataset, batch_size=self.args.batch_size, shuffle=True)
         validation_loader = DataLoader(self.validation_dataset, batch_size=self.args.batch_size, shuffle=True)
         test_loader = DataLoader(self.test_dataset, batch_size=self.args.batch_size, shuffle=True)
+        complete_loader = DataLoader(self.dataset, batch_size=self.args.batch_size, shuffle=True)
 
         for epoch in range(self.args.max_epochs):
             self.model.train()
@@ -109,6 +111,7 @@ class Experiment:
             new_best_str = ''
             scheduler.step(total_loss)
             if epoch % self.args.eval_every == 0:
+                energy = self.check_dirichlet(loader=complete_loader)
                 train_acc = self.eval(loader=train_loader)
                 validation_acc = self.eval(loader=validation_loader)
                 test_acc = self.eval(loader=test_loader)
@@ -143,7 +146,7 @@ class Experiment:
                     else:
                         epochs_no_improve += 1
                 if self.args.display:
-                    print(f'Epoch {epoch}, Train acc: {train_acc}, Validation acc: {validation_acc}{new_best_str}, Test acc: {test_acc}')
+                    print(f'Epoch {epoch}, Train acc: {train_acc}, Validation acc: {validation_acc}{new_best_str}, Test acc: {test_acc}, Dirichlet energy: {energy}')
                 if epochs_no_improve > self.args.patience:
                     if self.args.display:
                         print(f'{self.args.patience} epochs without improvement, stopping training')
@@ -163,3 +166,13 @@ class Experiment:
                 total_correct += pred.eq(y).sum().item()
                 
         return total_correct / sample_size
+    def check_dirichlet(self, loader):
+        self.model.eval()
+        sample_size = len(loader.dataset)
+        with torch.no_grad():
+            total_energy = 0
+            for graph in loader:
+                graph = graph.to(self.args.device)
+                total_energy += self.model(graph, measure_dirichlet=True)
+        return total_energy / sample_size
+

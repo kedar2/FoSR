@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from measure_smoothing import dirichlet_normalized
 from torch.nn import ModuleList, Dropout, ReLU
 from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GATConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool, DenseGCNConv, DenseGINConv
 from torch_geometric.data import Data, InMemoryDataset
@@ -87,7 +88,7 @@ class GCN(torch.nn.Module):
         for layer in self.layers:
             layer.reset_parameters()
 
-    def forward(self, graph):
+    def forward(self, graph, measure_dirichlet=False):
         x, edge_index, ptr, batch = graph.x, graph.edge_index, graph.ptr, graph.batch
         x = x.float()
         batch_size = len(ptr) - 1
@@ -108,5 +109,10 @@ class GCN(torch.nn.Module):
                 x = self.act_fn(x)
                 x = self.dropout(x)
         # assign values to each graph in batch
+        
+        if measure_dirichlet:
+            # check dirichlet energy instead of computing final values
+            energy = dirichlet_normalized(x.cpu().numpy(), graph.edge_index.cpu().numpy())
+            return energy
         x = global_mean_pool(x, batch)
         return x
