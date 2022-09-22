@@ -86,7 +86,7 @@ def run(args=AttrDict({})):
             for i in range(len(dataset)):
                 dataset[i].adj = to_dense_adj(dataset[i].x)
         for trial in range(args.num_trials):
-            train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
+            train_acc, validation_acc, test_acc, energies = Experiment(args=args, dataset=dataset).run()
             validation_accuracies.append(validation_acc)
             test_accuracies.append(test_acc)
         val_mean = 100 * np.mean(validation_accuracies)
