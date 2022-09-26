@@ -1,8 +1,0 @@
-RESULTS FOR neighborsmatch (GCN):
-average acc: 0.09200000017881393
-plus/minus:  0.0
-
-RESULTS FOR neighborsmatch (GCN):
-average acc: 1.0
-plus/minus:  0.0
-
