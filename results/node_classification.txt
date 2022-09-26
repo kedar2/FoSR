@@ -1,8 +1,0 @@
-RESULTS FOR cornell (edge_rewire):
-average acc: 0.4281081081081081
-plus/minus:  0.015378734618017972
-
-RESULTS FOR wisconsin (edge_rewire):
-average acc: 0.43823529411764717
-plus/minus:  0.012772218505479415
-

@@ -76,10 +76,6 @@ class GCN(torch.nn.Module):
             return RGINConv(in_features, out_features, self.num_relations)
         elif self.layer_type == "GIN":
             return GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features)))
-        elif self.layer_type == "Dense-GCN":
-            return DenseGCNConv(in_features, out_features)
-        elif self.layer_type == "Dense-GIN":
-            return DenseGINConv(in_features, out_features)
         elif self.layer_type == "SAGE":
             return SAGEConv(in_features, out_features)
         elif self.layer_type == "FiLM":
@@ -92,12 +88,6 @@ class GCN(torch.nn.Module):
         x, edge_index, ptr, batch = graph.x, graph.edge_index, graph.ptr, graph.batch
         x = x.float()
         batch_size = len(ptr) - 1
-        if self.args.rewiring == "diffwire-GAP":
-            x, mask = to_dense_batch(x, batch)
-            adj = to_dense_adj(edge_index, batch)
-            x = dense_mincut_rewiring(x, adj, x, mask, derivative="normalized")
-            print(x)
-            input()
         for i, layer in enumerate(self.layers):
             if self.layer_type in ["R-GCN", "R-GAT", "R-GIN", "FiLM"]:
                 x = layer(x, edge_index, edge_type=graph.edge_type)
