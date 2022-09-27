@@ -1,3 +1,5 @@
+# SDRF preprocessing, from https://github.com/jctops/understanding-oversquashing
+
 from numba import jit, prange
 import numpy as np
 import torch
