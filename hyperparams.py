@@ -29,5 +29,6 @@ def get_args_from_input():
 	parser.add_argument('--alpha', type=float, help='alpha hyperparameter for DIGL')
 	parser.add_argument('--k', type=int, help='k hyperparameter for DIGL')
 	parser.add_argument('--eps', type=float, help='epsilon hyperparameter for DIGL')
+	parser.add_argument('--dataset', type=str, help='name of dataset to use')
 	arg_values = parser.parse_args()
 	return AttrDict(vars(arg_values))

@@ -82,16 +82,14 @@ class Experiment:
         best_train_acc = 0.0
         train_goal = 0.0
         validation_goal = 0.0
-        best_epoch = 0
         epochs_no_improve = 0
-        #energies = []
-        train_size = len(self.train_dataset)
 
         train_loader = DataLoader(self.train_dataset, batch_size=self.args.batch_size, shuffle=True)
         validation_loader = DataLoader(self.validation_dataset, batch_size=self.args.batch_size, shuffle=True)
         test_loader = DataLoader(self.test_dataset, batch_size=self.args.batch_size, shuffle=True)
+        complete_loader = DataLoader(self.dataset, batch_size=self.args.batch_size, shuffle=True)
 
-        for epoch in range(self.args.max_epochs):
+        for epoch in range(1, 1 + self.args.max_epochs):
             self.model.train()
             total_loss = 0
             optimizer.zero_grad()
@@ -110,8 +108,6 @@ class Experiment:
             new_best_str = ''
             scheduler.step(total_loss)
             if epoch % self.args.eval_every == 0:
-                #energy = self.check_dirichlet(loader=complete_loader)
-                #energies.append(energy)
                 train_acc = self.eval(loader=train_loader)
                 validation_acc = self.eval(loader=validation_loader)
                 test_acc = self.eval(loader=test_loader)
@@ -151,7 +147,13 @@ class Experiment:
                     if self.args.display:
                         print(f'{self.args.patience} epochs without improvement, stopping training')
                         print(f'Best train acc: {best_train_acc}, Best validation loss: {best_validation_acc}, Best test loss: {best_test_acc}')
-                    return train_acc, validation_acc, test_acc
+                    energy = self.check_dirichlet(loader=complete_loader)
+                    return train_acc, validation_acc, test_acc, energy
+        if self.args.display:
+            print('Reached max epoch count, stopping training')
+            print(f'Best train acc: {best_train_acc}, Best validation loss: {best_validation_acc}, Best test loss: {best_test_acc}')
+        energy = self.check_dirichlet(loader=complete_loader)
+        return train_acc, validation_acc, test_acc, energy
 
     def eval(self, loader):
         self.model.eval()

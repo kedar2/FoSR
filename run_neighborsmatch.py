@@ -37,7 +37,8 @@ default_args = AttrDict({
     "num_trials": 250,
     "eval_every": 1,
     "rewiring": "edge_rewire",
-    "num_iterations": 50
+    "num_iterations": 50,
+    "log_energy": False
     })
 
 def run(args=AttrDict({})):
@@ -50,6 +51,7 @@ def run(args=AttrDict({})):
     args += get_args_from_input()
 
     accuracies = []
+    energies = []
     print(f"TESTING: NEIGHBORSMATCH ({args.rewiring}), ITERATION COUNT {args.num_iterations}")
 
     for trial in range(1, args.num_trials + 1):
