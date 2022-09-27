@@ -7,7 +7,7 @@ from torch.utils.data import random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from math import inf
 
-from models.graph_model import GCN
+from models.graph_model import GNN
 
 default_args = AttrDict(
     {"learning_rate": 1e-3,
@@ -58,7 +58,7 @@ class Experiment:
                 self.args.num_relations = 1
             else:
                 self.args.num_relations = 2
-        self.model = GCN(self.args).to(self.args.device)
+        self.model = GNN(self.args).to(self.args.device)
        
         # randomly assign a train/validation/test split, or train/validation split if test already assigned
         if self.test_dataset is None:
