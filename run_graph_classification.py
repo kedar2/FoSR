@@ -7,7 +7,7 @@ import torch
 import numpy as np
 import pandas as pd
 from hyperparams import get_args_from_input
-from preprocessing import rewiring, sdrf, robustness, digl
+from preprocessing import rewiring, sdrf, fosr, digl
 
 largest_cc = LargestConnectedComponents()
 to_undirected = ToUndirected()
@@ -42,7 +42,7 @@ default_args = AttrDict({
     "display": False,
     "num_trials": 100,
     "eval_every": 1,
-    "rewiring": "sdrf",
+    "rewiring": "fosr",
     "num_iterations": 10,
     "patience": 100,
     "output_dim": 2,
@@ -69,9 +69,9 @@ def run(args=AttrDict({})):
         test_accuracies = []
         print(f"TESTING: {key} ({args.rewiring})")
         dataset = datasets[key]
-        if args.rewiring == "edge_rewire":
+        if args.rewiring == "fosr":
             for i in range(len(dataset)):
-                edge_index, edge_type, _ = robustness.edge_rewire(dataset[i].edge_index.numpy(), num_iterations=args.num_iterations)
+                edge_index, edge_type, _ = fosr.edge_rewire(dataset[i].edge_index.numpy(), num_iterations=args.num_iterations)
                 dataset[i].edge_index = torch.tensor(edge_index)
                 dataset[i].edge_type = torch.tensor(edge_type)
         elif args.rewiring == "sdrf":
@@ -82,9 +82,6 @@ def run(args=AttrDict({})):
                 dataset[i].edge_index = digl.rewire(dataset[i], alpha=0.1, eps=0.05)
                 m = dataset[i].edge_index.shape[1]
                 dataset[i].edge_type = torch.tensor(np.zeros(m, dtype=np.int64))
-        elif "diffwire-???" in args.rewiring:
-            for i in range(len(dataset)):
-                dataset[i].adj = to_dense_adj(dataset[i].x)
         for trial in range(args.num_trials):
             train_acc, validation_acc, test_acc, energies = Experiment(args=args, dataset=dataset).run()
             validation_accuracies.append(validation_acc)
