@@ -83,7 +83,7 @@ def run(args=AttrDict({})):
                 m = dataset[i].edge_index.shape[1]
                 dataset[i].edge_type = torch.tensor(np.zeros(m, dtype=np.int64))
         for trial in range(args.num_trials):
-            train_acc, validation_acc, test_acc, energies = Experiment(args=args, dataset=dataset).run()
+            train_acc, validation_acc, test_acc = Experiment(args=args, dataset=dataset).run()
             validation_accuracies.append(validation_acc)
             test_accuracies.append(test_acc)
         val_mean = 100 * np.mean(validation_accuracies)
