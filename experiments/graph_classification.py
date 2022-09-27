@@ -90,12 +90,10 @@ class Experiment:
         train_loader = DataLoader(self.train_dataset, batch_size=self.args.batch_size, shuffle=True)
         validation_loader = DataLoader(self.validation_dataset, batch_size=self.args.batch_size, shuffle=True)
         test_loader = DataLoader(self.test_dataset, batch_size=self.args.batch_size, shuffle=True)
-        complete_loader = DataLoader(self.dataset, batch_size=self.args.batch_size, shuffle=True)
 
         for epoch in range(self.args.max_epochs):
             self.model.train()
             total_loss = 0
-            sample_size = 0
             optimizer.zero_grad()
 
             for graph in train_loader:
