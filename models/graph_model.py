@@ -2,12 +2,7 @@ import torch
 import torch.nn as nn
 from measure_smoothing import dirichlet_normalized
 from torch.nn import ModuleList, Dropout, ReLU
-from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GATConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool, DenseGCNConv, DenseGINConv
-from torch_geometric.data import Data, InMemoryDataset
-from torch_geometric.utils import to_dense_batch, to_dense_adj
-from models.diffwire.CT_layer import dense_CT_rewiring
-from models.diffwire.MinCut_Layer import dense_mincut_pool
-from models.diffwire.GAP_layer import dense_mincut_rewiring
+from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GATConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool
 
 class RGATConv(torch.nn.Module):
     def __init__(self, in_features, out_features, num_relations):
@@ -45,9 +40,9 @@ class RGINConv(torch.nn.Module):
             x_new += conv(x, rel_edge_index)
         return x_new
 
-class GCN(torch.nn.Module):
+class GNN(torch.nn.Module):
     def __init__(self, args):
-        super(GCN, self).__init__()
+        super(GNN, self).__init__()
         self.args = args
         self.num_relations = args.num_relations
         self.layer_type = args.layer_type
@@ -57,17 +52,11 @@ class GCN(torch.nn.Module):
         for i, (in_features, out_features) in enumerate(zip(num_features[:-1], num_features[1:])):
             layers.append(self.get_layer(in_features, out_features))
         self.layers = ModuleList(layers)
-
-        self.reg_params = list(layers[0].parameters())
-        self.non_reg_params = list([p for l in layers[1:] for p in l.parameters()])
-
         self.dropout = Dropout(p=args.dropout)
         self.act_fn = ReLU()
     def get_layer(self, in_features, out_features):
         if self.layer_type == "GCN":
             return GCNConv(in_features, out_features)
-        elif self.layer_type == "R-GCN2":
-            return SelfLoopGCNConv(in_features, out_features, args=self.args)
         elif self.layer_type == "R-GCN":
             return RGCNConv(in_features, out_features, self.num_relations)
         elif self.layer_type == "R-GAT":
@@ -80,19 +69,13 @@ class GCN(torch.nn.Module):
             return SAGEConv(in_features, out_features)
         elif self.layer_type == "FiLM":
             return FiLMConv(in_features, out_features)
-    def reset_parameters(self):
-        for layer in self.layers:
-            layer.reset_parameters()
 
     def forward(self, graph, measure_dirichlet=False):
         x, edge_index, ptr, batch = graph.x, graph.edge_index, graph.ptr, graph.batch
         x = x.float()
-        batch_size = len(ptr) - 1
         for i, layer in enumerate(self.layers):
             if self.layer_type in ["R-GCN", "R-GAT", "R-GIN", "FiLM"]:
                 x = layer(x, edge_index, edge_type=graph.edge_type)
-            elif self.layer_type in ["Dense-GCN", "Dense-GIN", "Dense-R-GCN","Dense-R-GIN"]:
-                x = layer(x, graph.adj)
             else:
                 x = layer(x, edge_index)
             if i != self.num_layers - 1:
