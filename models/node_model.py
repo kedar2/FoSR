@@ -1,8 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import ModuleList, Dropout, ReLU
-from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool
-from torch_geometric.data import Data, InMemoryDataset
+from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GINConv, FiLMConv, global_mean_pool
 
 class RGINConv(torch.nn.Module):
     def __init__(self, in_features, out_features, num_relations):
@@ -43,8 +42,6 @@ class GCN(torch.nn.Module):
     def get_layer(self, in_features, out_features):
         if self.layer_type == "GCN":
             return GCNConv(in_features, out_features)
-        elif self.layer_type == "R-GCN2":
-            return SelfLoopGCNConv(in_features, out_features, args=self.args)
         elif self.layer_type == "R-GCN":
             return RGCNConv(in_features, out_features, self.num_relations)
         elif self.layer_type == "GIN":
