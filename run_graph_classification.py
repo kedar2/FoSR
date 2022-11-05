@@ -1,16 +1,16 @@
+"""
+Test rewired GNN performance on graph classifiation benchmarks.
+"""
+
 from attrdict import AttrDict
 from torch_geometric.datasets import TUDataset
 from torch_geometric.utils import to_networkx, from_networkx, to_dense_adj
-from torch_geometric.transforms import LargestConnectedComponents, ToUndirected
 from experiments.graph_classification import Experiment
 import torch
 import numpy as np
 import pandas as pd
 from hyperparams import get_args_from_input
 from preprocessing import rewiring, sdrf, fosr, digl
-
-largest_cc = LargestConnectedComponents()
-to_undirected = ToUndirected()
 
 mutag = list(TUDataset(root="data", name="MUTAG"))
 enzymes = list(TUDataset(root="data", name="ENZYMES"))
