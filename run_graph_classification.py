@@ -26,7 +26,6 @@ for key in datasets:
             n = graph.num_nodes
             graph.x = torch.ones((n,1))
 
-
 def log_to_file(message, filename="results/graph_classification.txt"):
     print(message)
     file = open(filename, "a")
@@ -48,7 +47,8 @@ default_args = AttrDict({
     "output_dim": 2,
     "alpha": 0.1,
     "eps": 0.001,
-    "dataset": None
+    "dataset": None,
+    "last_layer_fa": False
     })
 
 hyperparams = {
@@ -121,7 +121,8 @@ for key in datasets:
         "train_mean": train_mean,
         "train_ci": train_ci,
         "energy_mean": energy_mean,
-        "energy_ci": energy_ci
+        "energy_ci": energy_ci,
+        "last_layer_fa": args.last_layer_fa
         })
 df = pd.DataFrame(results)
 with open('results/graph_classification.csv', 'a') as f:

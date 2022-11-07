@@ -54,6 +54,15 @@ class GNN(torch.nn.Module):
         self.layers = ModuleList(layers)
         self.dropout = Dropout(p=args.dropout)
         self.act_fn = ReLU()
+
+        if self.args.last_layer_fa:
+            # add transformation associated with complete graph if last layer is fully adjacent
+            if self.layer_type == "R-GCN":
+                self.last_layer_transform = torch.nn.Linear(self.args.hidden_dim, self.args.output_dim)
+            elif self.layer_type == "R-GIN":
+                self.last_layer_transform = nn.Sequential(nn.Linear(self.args.hidden_dim, self.args.hidden_dim),nn.BatchNorm1d(self.args.hidden_dim), nn.ReLU(),nn.Linear(self.args.hidden_dim, self.args.output_dim))
+            else:
+                raise NotImplementedError("Last layer FA only implemented for R-GCN and R-GIN")
     def get_layer(self, in_features, out_features):
         if self.layer_type == "GCN":
             return GCNConv(in_features, out_features)
@@ -75,14 +84,18 @@ class GNN(torch.nn.Module):
         x = x.float()
         for i, layer in enumerate(self.layers):
             if self.layer_type in ["R-GCN", "R-GAT", "R-GIN", "FiLM"]:
-                x = layer(x, edge_index, edge_type=graph.edge_type)
+                x_new = layer(x, edge_index, edge_type=graph.edge_type)
             else:
-                x = layer(x, edge_index)
+                x_new = layer(x, edge_index)
             if i != self.num_layers - 1:
-                x = self.act_fn(x)
-                x = self.dropout(x)
-        # assign values to each graph in batch
-        
+                x_new = self.act_fn(x_new)
+                x_new = self.dropout(x_new)
+            if i == self.num_layers - 1 and self.args.last_layer_fa:
+                # handle final layer when making last layer FA
+                combined_values = global_mean_pool(x, batch)
+                combined_values = self.last_layer_transform(combined_values)
+                x_new += combined_values[batch]
+            x = x_new 
         if measure_dirichlet:
             # check dirichlet energy instead of computing final values
             energy = dirichlet_normalized(x.cpu().numpy(), graph.edge_index.cpu().numpy())

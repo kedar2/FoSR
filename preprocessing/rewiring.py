@@ -34,6 +34,8 @@ def argmax(d):
 	return key_of_largest
 
 def spectral_gap(G):
+	if not nx.is_connected(G):
+		return 0.
 	return nx.normalized_laplacian_spectrum(G)[1]
 
 def lower_bound_cheeger(G, d):

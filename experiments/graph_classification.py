@@ -30,7 +30,8 @@ default_args = AttrDict(
     "num_layers": 1,
     "batch_size": 64,
     "layer_type": "GCN",
-    "num_relations": 2
+    "num_relations": 2,
+    "last_layer_fa": False
     }
     )
 
