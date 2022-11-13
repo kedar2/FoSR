@@ -26,6 +26,15 @@ for key in datasets:
             n = graph.num_nodes
             graph.x = torch.ones((n,1))
 
+def average_spectral_gap(dataset):
+    # computes the average spectral gap out of all graphs in a dataset
+    spectral_gaps = []
+    for graph in dataset:
+        G = to_networkx(graph, to_undirected=True)
+        spectral_gap = rewiring.spectral_gap(G)
+        spectral_gaps.append(spectral_gap)
+    return sum(spectral_gaps) / len(spectral_gaps)
+
 def log_to_file(message, filename="results/graph_classification.txt"):
     print(message)
     file = open(filename, "a")
@@ -60,7 +69,6 @@ hyperparams = {
     "reddit": AttrDict({"output_dim": 2})
 }
 
-
 results = []
 args = default_args
 args += get_args_from_input()
@@ -90,6 +98,7 @@ for key in datasets:
             dataset[i].edge_index = digl.rewire(dataset[i], alpha=0.1, eps=0.05)
             m = dataset[i].edge_index.shape[1]
             dataset[i].edge_type = torch.tensor(np.zeros(m, dtype=np.int64))
+    #spectral_gap = average_spectral_gap(dataset)
     for trial in range(args.num_trials):
         train_acc, validation_acc, test_acc, energy = Experiment(args=args, dataset=dataset).run()
         train_accuracies.append(train_acc)
@@ -125,5 +134,5 @@ for key in datasets:
         "last_layer_fa": args.last_layer_fa
         })
 df = pd.DataFrame(results)
-with open('results/graph_classification.csv', 'a') as f:
+with open('results/graph_classification_fa.csv', 'a') as f:
     df.to_csv(f, mode='a', header=f.tell()==0)

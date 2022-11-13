@@ -45,7 +45,7 @@ if not os.path.isfile("results/spectral.csv"):
     all_data = {}
 
     for key in datasets:
-        for rewiring_method in ["sdrf", "fosr"]:
+        for rewiring_method in ["fosr"]:
             print(key, rewiring_method)
             dataset = datasets[key]
             spectral_gaps = []

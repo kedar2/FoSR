@@ -57,12 +57,13 @@ class GNN(torch.nn.Module):
 
         if self.args.last_layer_fa:
             # add transformation associated with complete graph if last layer is fully adjacent
-            if self.layer_type == "R-GCN":
+            if self.layer_type == "R-GCN" or self.layer_type == "GCN":
                 self.last_layer_transform = torch.nn.Linear(self.args.hidden_dim, self.args.output_dim)
-            elif self.layer_type == "R-GIN":
+            elif self.layer_type == "R-GIN" or self.layer_type == "GIN":
                 self.last_layer_transform = nn.Sequential(nn.Linear(self.args.hidden_dim, self.args.hidden_dim),nn.BatchNorm1d(self.args.hidden_dim), nn.ReLU(),nn.Linear(self.args.hidden_dim, self.args.output_dim))
             else:
-                raise NotImplementedError("Last layer FA only implemented for R-GCN and R-GIN")
+                raise NotImplementedError
+
     def get_layer(self, in_features, out_features):
         if self.layer_type == "GCN":
             return GCNConv(in_features, out_features)
@@ -94,7 +95,10 @@ class GNN(torch.nn.Module):
                 # handle final layer when making last layer FA
                 combined_values = global_mean_pool(x, batch)
                 combined_values = self.last_layer_transform(combined_values)
-                x_new += combined_values[batch]
+                if self.layer_type in ["R-GCN", "R-GIN"]:
+                    x_new += combined_values[batch]
+                else:
+                    x_new = combined_values[batch]
             x = x_new 
         if measure_dirichlet:
             # check dirichlet energy instead of computing final values

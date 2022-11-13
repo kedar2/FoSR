@@ -4,18 +4,14 @@ import networkx as nx
 import numpy as np
 from math import inf
 
-@jit(nopython=True)
-def test(x):
-	z = np.zeros(3, dtype=int64)
-	y = np.append(z, z)
-	return y
 
 @jit(nopython=True)
-def choose_edge_to_add(x, edge_index):
-	# chooses edge (u, v) to add which minimizes x[u]*x[v]
+def choose_edge_to_add(x, edge_index, degrees):
+	# chooses edge (u, v) to add which minimizes y[u]*y[v]
 	n = x.size
 	m = edge_index.shape[1]
-	products = np.outer(x, x)
+	y = x / ((degrees + 1) ** 0.5)
+	products = np.outer(y, y)
 	for i in range(m):
 		u = edge_index[0, i]
 		v = edge_index[1, i]
@@ -58,12 +54,14 @@ def compute_spectral_gap(edge_index, x):
 	m = edge_index.shape[1]
 	n = np.max(edge_index) + 1
 	degrees = compute_degrees(edge_index, num_nodes=n)
-	x = x - x.dot(degrees ** 0.5) * (degrees ** 0.5)/sum(degrees)
 	y = adj_matrix_multiply(edge_index, x / (degrees ** 0.5)) / (degrees ** 0.5)
-	return 1 - np.linalg.norm(y)
+	for i in range(n):
+		if x[i] > 1e-9:
+			return 1 - y[i]/x[i]
+	return 0.
 
 @jit(nopython=True)
-def _edge_rewire(edge_index, edge_type, x=None, num_iterations=50, initial_power_iters=5):
+def _edge_rewire(edge_index, edge_type, x=None, num_iterations=50, initial_power_iters=50):
 	m = edge_index.shape[1]
 	n = np.max(edge_index) + 1
 	if x is None:
@@ -71,17 +69,17 @@ def _edge_rewire(edge_index, edge_type, x=None, num_iterations=50, initial_power
 	degrees = compute_degrees(edge_index, num_nodes=n)
 	for i in range(initial_power_iters):
 		x = x - x.dot(degrees ** 0.5) * (degrees ** 0.5)/sum(degrees)
-		y = adj_matrix_multiply(edge_index, x / (degrees ** 0.5)) / (degrees ** 0.5)
+		y = x + adj_matrix_multiply(edge_index, x / (degrees ** 0.5)) / (degrees ** 0.5)
 		x = y / np.linalg.norm(y)
 	for I in range(num_iterations):
-		i, j = choose_edge_to_add(x, edge_index)
+		i, j = choose_edge_to_add(x, edge_index, degrees=degrees)
 		edge_index = add_edge(edge_index, i, j)
 		degrees[i] += 1
 		degrees[j] += 1
 		edge_type = np.append(edge_type, 1)
 		edge_type = np.append(edge_type, 1)
 		x = x - x.dot(degrees ** 0.5) * (degrees ** 0.5)/sum(degrees)
-		y = adj_matrix_multiply(edge_index, x / (degrees ** 0.5)) / (degrees ** 0.5)
+		y = x + adj_matrix_multiply(edge_index, x / (degrees ** 0.5)) / (degrees ** 0.5)
 		x = y / np.linalg.norm(y)
 	return edge_index, edge_type, x
 
