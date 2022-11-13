@@ -1,5 +1,5 @@
 """
-Record data of evolution of the spectral gap of a graph as it gets rewired.
+Record runtime of FoSR and SDRF.
 
 """
 
